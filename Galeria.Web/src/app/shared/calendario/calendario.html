@@ -1,0 +1,91 @@
+<div class="event-calendar space-y-8">
+  <section class="event-calendar__header">
+    <h2 class="event-calendar__title">Agenda</h2>
+
+    <div class="event-calendar__toolbar">
+      <div class="event-calendar__month-navigation">
+        <button
+          type="button"
+          aria-label="Mês anterior"
+          mwlCalendarPreviousView
+          [view]="view"
+          [(viewDate)]="viewDate"
+          (viewDateChange)="closeOpenMonthViewDay()"
+          class="event-calendar__arrow"
+        >
+          <app-icons name="chevron-left" class="size-5" />
+        </button>
+        <h3>{{ viewDate | calendarDate: view + 'ViewTitle' : locale }}</h3>
+        <button
+          type="button"
+          aria-label="Próximo mês"
+          mwlCalendarNextView
+          [view]="view"
+          [(viewDate)]="viewDate"
+          (viewDateChange)="closeOpenMonthViewDay()"
+          class="event-calendar__arrow"
+        >
+          <app-icons name="chevron-right" class="size-5" />
+        </button>
+      </div>
+
+      <div class="event-calendar__view-options">
+        @if (mes) {
+          <button type="button" [class.is-active]="view === CalendarView.Month" (click)="setView(CalendarView.Month)">
+            Mês
+          </button>
+        }
+        @if (semana) {
+          <button type="button" [class.is-active]="view === CalendarView.Week" (click)="setView(CalendarView.Week)">
+            Semana
+          </button>
+        }
+        @if (dia) {
+          <button type="button" [class.is-active]="view === CalendarView.Day" (click)="setView(CalendarView.Day)">
+            Dia
+          </button>
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="event-calendar__body">
+    @switch (view) {
+      @case (CalendarView.Month) {
+        <mwl-calendar-month-view
+          [viewDate]="viewDate"
+          [events]="events"
+          [refresh]="refresh"
+          [locale]="locale"
+          [activeDayIsOpen]="activeDayIsOpen"
+          (dayClicked)="dayClicked($event.day)"
+          (eventClicked)="eventClicked($event.event)"
+          (eventTimesChanged)="eventTimesChanged($event)"
+        />
+      }
+      @case (CalendarView.Week) {
+        <mwl-calendar-week-view
+          [viewDate]="viewDate"
+          [events]="events"
+          [refresh]="refresh"
+          [locale]="locale"
+          (eventClicked)="eventClicked($event.event)"
+          (eventTimesChanged)="eventTimesChanged($event)"
+        />
+      }
+      @case (CalendarView.Day) {
+        <mwl-calendar-day-view
+          [viewDate]="viewDate"
+          [events]="events"
+          [refresh]="refresh"
+          [locale]="locale"
+          (eventClicked)="eventClicked($event.event)"
+          (eventTimesChanged)="eventTimesChanged($event)"
+        />
+      }
+    }
+    @if (events.length === 0) {
+      <p class="event-calendar__empty">Nenhum item cadastrado!</p>
+    }
+  </section>
+</div>

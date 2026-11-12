@@ -1,0 +1,26 @@
+@if (Open) {
+  <div
+    [class]="'fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 ' + backdropClasses"
+    role="dialog"
+    aria-modal="true"
+    tabindex="-1"
+    (click)="close()"
+    (keydown.escape)="close()"
+  >
+    <section
+      [class]="'relative flex w-full flex-col overflow-hidden rounded-lg bg-white shadow-2xl ' + panelClasses"
+      (click)="$event.stopPropagation()"
+    >
+      <button
+        type="button"
+        aria-label="Fechar modal"
+        class="absolute right-4 top-3 z-10 grid size-8 place-items-center rounded-full text-neutral-800 hover:bg-neutral-100"
+        (click)="close()"
+      >
+        <app-icons name="x" class="size-6" />
+      </button>
+
+      <ng-content></ng-content>
+    </section>
+  </div>
+}

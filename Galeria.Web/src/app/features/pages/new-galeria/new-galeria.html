@@ -1,0 +1,417 @@
+@if (selectedFiles.length === 0 && sections.length === 0) {
+  <section
+    class="mx-auto w-[calc(100%-1.25rem)] max-w-[116rem] py-6 sm:w-[calc(100%-2rem)] sm:py-8"
+  >
+    <div class="relative rounded bg-white p-6 shadow-sm sm:p-8">
+      <label
+        class="flex min-h-[calc(100vh-13rem)] cursor-pointer flex-col items-center justify-center rounded border border-dashed border-neutral-300 bg-white px-6 text-center transition sm:min-h-[44rem]"
+        [class.border-primary]="dragActive"
+        [class.bg-secondary]="dragActive"
+        (dragover)="onDragOver($event)"
+        (dragleave)="onDragLeave($event)"
+        (drop)="onDrop($event)"
+      >
+        <input
+          type="file"
+          accept="image/jpeg,.jpg,.jpeg"
+          multiple
+          class="sr-only"
+          (change)="onFileSelected($event)"
+        />
+
+        <p class="m-0 text-sm text-neutral-800">Carregue seus arquivos JPEG aqui.</p>
+        <div class="relative my-7 text-neutral-200">
+          <app-icons name="image" class="size-24 stroke-[1.5]" />
+          <span
+            class="absolute -bottom-1 -right-3 grid size-8 place-items-center rounded-full bg-primary text-[var(--text-primary)]"
+          >
+            <app-icons name="plus" class="size-5" />
+          </span>
+        </div>
+        <p class="m-0 text-sm text-neutral-700">Arraste e solte, ou clique para buscar.</p>
+      </label>
+    </div>
+  </section>
+} @else {
+  <main class="min-h-[calc(100vh-4rem)] bg-secondary/10 px-2 py-6 sm:px-8 sm:py-8">
+    <header
+      class="mx-auto mb-6 flex max-w-[116rem] flex-col gap-4 rounded bg-white px-5 py-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:px-6"
+    >
+      <div>
+        <p class="m-0 text-xs font-medium uppercase tracking-[0.16em] text-neutral-500">Galeria</p>
+        <h1 class="m-0 mt-1 text-2xl font-light tracking-[-0.04em] text-primary sm:text-3xl">
+          Criar ou editar galeria
+        </h1>
+        <p class="m-0 mt-1 text-sm text-neutral-500">Organize suas fotos e seções.</p>
+      </div>
+      <button
+        type="button"
+        (click)="openClientModal()"
+        class="inline-flex items-center justify-center gap-2 self-start rounded border border-secondary bg-secondary px-4 py-2.5 text-sm font-medium text-[var(--text-secondary)] transition-colors hover:bg-[var(--hover-secondary)] sm:self-center"
+      >
+        <app-icons name="user-round-pen" class="size-4" />
+        Editar cliente
+      </button>
+    </header>
+
+    @if (sections.length < 2) {
+      <button
+        type="button"
+        (click)="createSections()"
+        class="mx-auto flex items-center gap-2 rounded bg-secondary px-4 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--hover-secondary)]"
+      >
+        <app-icons name="plus" class="size-4" />
+        Criar Seções
+      </button>
+    }
+
+    @if (sections.length > 1) {
+      <div
+        class="mt-5 flex items-stretch gap-1 overflow-x-auto rounded border border-neutral-200 bg-white p-1 shadow-sm"
+      >
+        @for (section of sections; track section.id; let index = $index) {
+          <button
+            type="button"
+            (click)="selectSection(index)"
+            class="relative flex min-w-72 flex-1 items-center gap-3 px-4 py-3 text-left text-sm transition"
+            [class.bg-secondary]="activeSection === index"
+            [class.text-primary]="activeSection === index"
+          >
+            <span class="flex items-center gap-2 text-neutral-700">
+              <app-icons name="image" class="size-4" />
+              <span>{{ section.previewUrls.length }}</span>
+              @if (section.previewUrls.length > 0) {
+                <app-icons name="triangle-alert" class="size-4 text-amber-400" />
+              }
+            </span>
+            <span class="flex-1 text-center font-medium">{{ section.name }}</span>
+            @if (sections.length > 1) {
+              <span
+                role="button"
+                tabindex="0"
+                aria-label="Excluir seção"
+                (click)="$event.stopPropagation(); removeSection(index)"
+                (keydown.enter)="$event.stopPropagation(); removeSection(index)"
+                class="grid size-7 place-items-center rounded text-neutral-500 hover:bg-red-100 hover:text-red-600"
+              >
+                <app-icons name="trash-2" class="size-4" />
+              </span>
+            } @else {
+              <span class="size-7"></span>
+            }
+          </button>
+        }
+        <button
+          type="button"
+          aria-label="Adicionar seção"
+          (click)="addSection()"
+          class="grid size-12 shrink-0 place-items-center self-center rounded-full bg-primary text-[var(--text-primary)] hover:bg-[var(--hover-primary)]"
+        >
+          <app-icons name="plus" class="size-6" />
+        </button>
+      </div>
+    }
+
+    <section class="mt-8 min-h-[calc(100vh-12rem)] rounded bg-white p-6 shadow-sm sm:p-8">
+      <div class="flex flex-wrap items-end justify-between gap-4">
+        <div class="flex items-end gap-4">
+          <div>
+            <span class="block text-xs text-neutral-500">Classificar por</span>
+            <button
+              type="button"
+              class="flex items-center gap-1 border-b border-neutral-300 py-1 text-base text-neutral-600"
+            >
+              Nome do arquivo
+              <app-icons name="chevron-down" class="size-4" />
+            </button>
+          </div>
+          <button
+            type="button"
+            aria-label="Visualização em grade"
+            (click)="viewMode = viewMode === 'grid' ? 'list' : 'grid'"
+            class="grid size-9 place-items-center rounded bg-secondary text-[var(--text-secondary)] hover:bg-[var(--hover-secondary)]"
+          >
+            <app-icons [name]="viewMode === 'grid' ? 'layout-grid' : 'list'" class="size-5" />
+          </button>
+        </div>
+        <div class="flex items-center gap-4">
+          @if (selectedIndexes.size > 0) {
+            <span class="text-sm text-neutral-700">
+              {{ selectedIndexes.size }}
+              {{ selectedIndexes.size === 1 ? 'imagem' : 'imagens' }} selecionada{{
+                selectedIndexes.size === 1 ? '' : 's'
+              }}
+            </span>
+            <button
+              type="button"
+              aria-label="Excluir imagens selecionadas"
+              (click)="deleteSelected()"
+              class="grid size-9 place-items-center rounded bg-secondary text-[var(--text-secondary)] hover:bg-red-100 hover:text-red-600"
+            >
+              <app-icons name="trash-2" class="size-5" />
+            </button>
+          } @else {
+            <span class="text-sm text-neutral-600"
+              >{{ selectedFiles.length }}
+              {{ selectedFiles.length === 1 ? 'imagem' : 'imagens' }}</span
+            >
+          }
+          <label
+            class="flex cursor-pointer items-center gap-2 rounded bg-secondary px-4 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--hover-secondary)]"
+          >
+            <input
+              type="file"
+              accept="image/jpeg,.jpg,.jpeg"
+              multiple
+              class="sr-only"
+              (change)="addFiles($event)"
+            />
+            <app-icons name="plus" class="size-4" />
+            Adicionar Imagens
+          </label>
+        </div>
+      </div>
+
+      <div class="mt-6 flex flex-wrap gap-3">
+        @for (previewUrl of previewUrls; track previewUrl; let index = $index) {
+          <div
+            class="group relative h-40 w-40 cursor-grab rounded border bg-white p-2 shadow-sm transition active:cursor-grabbing sm:h-48 sm:w-48"
+            draggable="true"
+            [class.border-neutral-200]="!isSelected(index)"
+            [class.border-blue-500]="isSelected(index)"
+            [class.ring-1]="isSelected(index)"
+            [class.ring-blue-500]="isSelected(index)"
+            [class.border-dashed]="dragOverIndex === index && draggingIndex !== index"
+            [class.border-blue-300]="dragOverIndex === index && draggingIndex !== index"
+            [class.opacity-50]="draggingIndex === index"
+            [attr.aria-selected]="isSelected(index)"
+            (click)="selectImage(index, $event)"
+            (dragstart)="onDragStart(index, $event)"
+            (dragover)="onImageDragOver(index, $event)"
+            (drop)="onImageDrop(index, $event)"
+            (dragend)="onDragEnd()"
+          >
+            <img [src]="previewUrl" alt="Imagem selecionada" class="h-full w-full object-contain" />
+            <button
+              type="button"
+              aria-label="Visualizar imagem"
+              (click)="$event.stopPropagation(); openPreview(index)"
+              class="absolute bottom-1 left-1 z-10 grid size-6 place-items-center rounded-full bg-white/90 text-neutral-700 opacity-0 shadow-sm transition group-hover:opacity-100"
+            >
+              <app-icons name="zoom-in" class="size-4" />
+            </button>
+          </div>
+        }
+      </div>
+    </section>
+  </main>
+
+  <app-modal [Open]="previewIndex !== null" Size="lightbox" (Closed)="closePreview()">
+    @if (previewIndex !== null) {
+      <div
+        class="relative flex max-h-[calc(100vh-2rem)] max-w-[calc(100vw-2rem)] items-center justify-center"
+      >
+        <img
+          [src]="previewUrls[previewIndex]"
+          alt="Imagem ampliada"
+          class="max-h-[calc(100vh-2rem)] max-w-full object-contain shadow-2xl"
+        />
+
+        @if (previewUrls.length > 1) {
+          <button
+            type="button"
+            aria-label="Imagem anterior"
+            (click)="previousPreview()"
+            class="absolute left-3 grid size-11 place-items-center rounded-full bg-black/35 text-white hover:bg-black/55 sm:left-5"
+          >
+            <app-icons name="chevron-left" class="size-7" />
+          </button>
+          <button
+            type="button"
+            aria-label="Próxima imagem"
+            (click)="nextPreview()"
+            class="absolute right-3 grid size-11 place-items-center rounded-full bg-black/35 text-white hover:bg-black/55 sm:right-5"
+          >
+            <app-icons name="chevron-right" class="size-7" />
+          </button>
+        }
+      </div>
+    }
+  </app-modal>
+}
+
+<app-modal [Open]="settingsOpen" Size="settings" (Closed)="closeSettings()">
+  <div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
+    <header class="px-6 pb-8 pt-14 text-center sm:pt-16">
+      <h2 class="m-0 text-3xl font-light tracking-[-0.04em] text-neutral-800 sm:text-4xl">
+        Configurações da Galeria
+      </h2>
+    </header>
+
+    <nav
+      class="flex justify-center border-b border-neutral-200 px-4"
+      aria-label="Configurações da galeria"
+    >
+      @for (tab of ['Geral', 'Interações', 'Downloads']; track tab) {
+        <button
+          type="button"
+          (click)="settingsTab = $any(tab)"
+          class="relative min-w-28 px-4 py-4 text-sm font-medium text-neutral-500 hover:text-neutral-900 sm:min-w-40"
+          [class.text-neutral-900]="settingsTab === tab"
+        >
+          {{ tab }}
+          @if (tab === 'Geral') {
+            <span class="absolute -right-1 top-3 size-1.5 rounded-full"></span>
+          }
+          @if (settingsTab === tab) {
+            <span class="absolute inset-x-0 bottom-[-1px] h-0.5 bg-primary"></span>
+          }
+        </button>
+      }
+    </nav>
+
+    @if (settingsTab === 'Geral') {
+      <div
+        class="mx-auto grid w-full max-w-3xl flex-1 grid-cols-1 gap-x-8 gap-y-8 px-6 py-10 sm:grid-cols-[7rem_1fr] sm:px-10"
+      >
+        <h3 class="m-0 text-base font-normal text-neutral-700 sm:pt-2">Básico</h3>
+        <div class="space-y-7">
+          <label class="block">
+            <span class="block text-sm text-red-500">Nome da Galeria</span>
+            <input
+              type="text"
+              [(ngModel)]="galleryName"
+              placeholder="Nome da Galeria"
+              class="w-full border-0 border-b border-red-500 px-0 py-2 text-base text-neutral-800 outline-none placeholder:text-red-500"
+            />
+            @if (!galleryName.trim()) {
+              <span class="mt-1 block text-xs text-red-500">Este campo é obrigatório.</span>
+            }
+          </label>
+
+          <label class="block">
+            <span class="sr-only">Data da sessão de fotos</span>
+            <div class="flex items-center border-b border-neutral-300">
+              <input
+                type="date"
+                [(ngModel)]="sessionDate"
+                placeholder="Data da sessão de fotos"
+                class="w-full border-0 px-0 py-2 text-base text-neutral-500 outline-none"
+              />
+              <app-icons name="calendar-days" class="size-5 text-neutral-500" />
+            </div>
+          </label>
+
+          <h3 class="m-0 pt-3 text-base font-normal text-neutral-700">Acesso</h3>
+
+          <label class="block">
+            <span class="block text-sm text-red-500">URL da Galeria</span>
+            <input
+              type="url"
+              [(ngModel)]="galleryUrl"
+              class="w-full border-0 border-b border-red-500 px-0 py-2 text-base text-neutral-500 outline-none"
+            />
+            <span class="mt-1 block text-xs text-red-500">Este campo é obrigatório.</span>
+          </label>
+
+          <label class="block">
+            <span class="sr-only">Senha</span>
+            <div class="border-b border-neutral-300">
+              <input
+                type="password"
+                [(ngModel)]="password"
+                maxlength="20"
+                placeholder="Senha"
+                class="w-full border-0 px-0 py-2 text-base text-neutral-500 outline-none"
+              />
+              <span class="block text-right text-xs text-slate-700"
+                >{{ password.length }} / 20</span
+              >
+            </div>
+          </label>
+        </div>
+      </div>
+    } @else {
+      <div class="grid flex-1 place-items-center p-8 text-center text-sm text-neutral-600">
+        <p>As opções de {{ settingsTab.toLocaleLowerCase() }} estarão disponíveis aqui.</p>
+      </div>
+    }
+
+    <footer class="flex justify-end gap-4 border-t border-neutral-100 px-6 py-5 sm:px-10">
+      <button
+        type="button"
+        (click)="closeSettings()"
+        class="px-3 py-2 text-sm font-medium text-primary hover:text-[var(--hover-primary)]"
+      >
+        Cancelar
+      </button>
+      <button
+        type="button"
+        (click)="saveSettings()"
+        [disabled]="!galleryName.trim() || !galleryUrl.trim()"
+        class="rounded bg-primary px-5 py-2 text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--hover-primary)] disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-400"
+      >
+        Salvar
+      </button>
+    </footer>
+  </div>
+</app-modal>
+
+<app-modal [Open]="clientModalOpen" (Closed)="closeClientModal()">
+  <form class="flex flex-col gap-6 p-6 sm:p-10" (ngSubmit)="saveClient()" novalidate>
+    <div class="text-center">
+      <h2 class="m-0 text-3xl font-light tracking-[-0.04em] text-primary">Editar cliente</h2>
+      <p class="mt-2 text-sm text-neutral-500">Atualize as informações do cliente da galeria.</p>
+    </div>
+
+    <div class="mx-auto grid w-full max-w-xl gap-5">
+      <label class="grid gap-2 text-sm text-neutral-700">
+        <span>Nome</span>
+        <input
+          type="text"
+          name="clientName"
+          [(ngModel)]="cliente.nome"
+          required
+          class="w-full rounded border border-secondary bg-secondary/10 px-4 py-3 outline-none transition focus:border-primary focus:ring-1 focus:ring-primary"
+        />
+      </label>
+      <label class="grid gap-2 text-sm text-neutral-700">
+        <span>E-mail</span>
+        <input
+          type="email"
+          name="clientEmail"
+          [(ngModel)]="cliente.email"
+          required
+          class="w-full rounded border border-secondary bg-secondary/10 px-4 py-3 outline-none transition focus:border-primary focus:ring-1 focus:ring-primary"
+        />
+      </label>
+      <label class="grid gap-2 text-sm text-neutral-700">
+        <span>Telefone</span>
+        <input
+          type="tel"
+          name="clientPhone"
+          [(ngModel)]="cliente.telefone"
+          required
+          class="w-full rounded border border-secondary bg-secondary/10 px-4 py-3 outline-none transition focus:border-primary focus:ring-1 focus:ring-primary"
+        />
+      </label>
+    </div>
+
+    <div class="flex justify-end gap-3 border-t border-secondary pt-5">
+      <button
+        type="button"
+        (click)="closeClientModal()"
+        class="rounded px-4 py-2 text-sm font-medium text-primary hover:bg-secondary"
+      >
+        Cancelar
+      </button>
+      <button
+        type="submit"
+        [disabled]="!cliente.nome?.trim() || !cliente.email?.trim() || !cliente.telefone?.trim()"
+        class="rounded bg-primary px-5 py-2 text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--hover-primary)] disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-400"
+      >
+        Salvar
+      </button>
+    </div>
+  </form>
+</app-modal>

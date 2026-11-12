@@ -1,0 +1,12 @@
+@charset "UTF-8";
+@import '../node_modules/angular-calendar/css/angular-calendar.css';
+
+@import 'tailwindcss';
+@theme {
+  --color-primary: #49331e;
+  --color-secondary: #e8dfd3;
+  --hover-primary: #352416;
+  --hover-secondary: #f2ece4;
+  --text-primary: #ffffff;
+  --text-secondary: #49331e;
+}

@@ -1,0 +1,7 @@
+<div
+  *ngIf="loading$ | async"
+  class="fixed inset-0 z-50 flex items-center justify-center bg-white bg-opacity-70 flex-col"
+>
+  <app-icons name="loader-circle" class="animate-spin w-10 h-10 text-gray-600 mb-4"></app-icons>
+  <p class="text-gray-600 text-lg">Carregando...</p>
+</div>

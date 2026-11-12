@@ -1,0 +1,174 @@
+<section
+  class="mx-auto w-[calc(100%-2rem)] max-w-7xl py-11 pb-16 text-neutral-900 sm:w-[calc(100%-3rem)] lg:px-0"
+>
+  <div
+    class="mb-6 grid grid-cols-[1fr_auto] items-center gap-4 lg:grid-cols-[1fr_auto_1fr] lg:gap-8"
+  >
+    <h1 class="m-0 text-3xl font-light tracking-[-0.04em] sm:text-4xl">Galerias</h1>
+    <p
+      class="col-span-2 m-0 text-left text-base text-slate-700 lg:col-span-1 lg:col-start-2 lg:row-start-1 lg:text-center"
+    >
+      Você tem <strong class="font-medium">{{ galleries.length }}</strong> galerias.
+    </p>
+
+    <div
+      class="relative col-start-2 row-start-1 flex justify-end gap-2 lg:col-start-3"
+      aria-label="Ações da galeria"
+    >
+      @if (searchOpen) {
+        <label class="flex h-9 items-center gap-2 border-b border-neutral-300 text-neutral-600">
+          <app-icons name="search" class="size-5 shrink-0" />
+          <span class="sr-only">Buscar galerias</span>
+          <input
+            type="search"
+            [value]="searchTerm"
+            (input)="searchTerm = $any($event.target).value"
+            placeholder="Buscar"
+            class="w-28 bg-transparent text-sm text-neutral-800 outline-none placeholder:text-neutral-400 sm:w-36"
+          />
+        </label>
+      }
+      <button
+        type="button"
+        aria-label="Pesquisar galerias"
+        [attr.aria-expanded]="searchOpen"
+        (click)="toggleSearch()"
+        class="grid size-9 shrink-0 place-items-center rounded-full text-neutral-700 hover:bg-slate-200"
+      >
+        <app-icons name="search" class="size-5" />
+      </button>
+      <button
+        type="button"
+        aria-label="Filtrar galerias"
+        [attr.aria-expanded]="filterOpen"
+        (click)="toggleFilter()"
+        class="grid size-9 shrink-0 place-items-center rounded-full text-neutral-700 hover:bg-slate-200"
+      >
+        <app-icons name="list-filter" class="size-5" />
+      </button>
+
+      @if (filterOpen) {
+        <div
+          class="absolute right-0 top-11 z-30 w-80 rounded bg-white py-2 shadow-lg ring-1 ring-black/5"
+        >
+          @for (
+            filter of [
+              'Nome da Galeria',
+              'Data de criação: antiga para recente',
+              'Data de criação: recente para antiga',
+              'Data da sessão de fotos: antigas para recentes',
+              'Data da sessão de fotos: recentes para antigas',
+            ];
+            track filter
+          ) {
+            <button
+              type="button"
+              (click)="chooseFilter(filter)"
+              class="block w-full px-4 py-3 text-left text-sm text-slate-800 hover:bg-slate-50"
+              [class.font-semibold]="selectedFilter === filter"
+            >
+              {{ filter }}
+            </button>
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+    <button
+      type="button"
+      (click)="openClientModal()"
+      class="group grid h-36 place-items-center rounded border border-neutral-300 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-primary hover:shadow-lg hover:shadow-primary/10 sm:h-48"
+      aria-label="Criar uma nova galeria"
+    >
+      <span class="text-6xl font-extralight leading-none text-primary" aria-hidden="true">+</span>
+      <span class="sr-only">Criar nova galeria</span>
+    </button>
+
+    @for (gallery of filteredGalleries; track gallery.guid) {
+      <app-galerias [galerias]="gallery"></app-galerias>
+    }
+  </div>
+</section>
+
+<app-modal [Open]="clientModalOpen" (Closed)="closeClientModal()">
+  <form class="flex flex-col gap-6 p-6 sm:p-10" (ngSubmit)="salvar()" novalidate>
+    <div class="text-center">
+      <h2 class="m-0 text-3xl font-light tracking-[-0.04em] text-primary">Cadastrar Cliente</h2>
+      <p class="mt-2 text-sm text-neutral-500">Informe os dados do cliente para criar a galeria.</p>
+    </div>
+
+    <div class="mx-auto grid w-full max-w-xl gap-5">
+      <label class="grid gap-2 text-sm text-neutral-700">
+        <span>Nome</span>
+        <app-input [control]="clineteForm.controls.nome" Icon="user"></app-input>
+        <div
+          *ngIf="
+            clineteForm.controls.nome.invalid &&
+            (clineteForm.controls.nome.dirty || clineteForm.controls.nome.touched)
+          "
+          class="text-red-500 text-sm mt-1"
+        >
+          <small *ngIf="clineteForm.controls.nome.errors?.['required']">Nome é obrigatório</small>
+        </div>
+      </label>
+
+      <label class="grid gap-2 text-sm text-neutral-700">
+        <span>E-mail</span>
+        <app-input [control]="clineteForm.controls.email" type="email" Icon="at-sign"></app-input>
+        <div
+          *ngIf="
+            clineteForm.controls.email.invalid &&
+            (clineteForm.controls.email.dirty || clineteForm.controls.email.touched)
+          "
+          class="text-red-500 text-sm mt-1"
+        >
+          <small *ngIf="clineteForm.controls.email.errors?.['required']"
+            >E-mail é obrigatório</small
+          >
+          <small *ngIf="clineteForm.controls.email.errors?.['email']"
+            >Informe um e-mail válido</small
+          >
+        </div>
+      </label>
+
+      <label class="grid gap-2 text-sm text-neutral-700">
+        <span>Telefone</span>
+        <app-input
+          [control]="clineteForm.controls.telefone"
+          [Telefone]="true"
+          Icon="phone"
+        ></app-input>
+        <div
+          *ngIf="
+            clineteForm.controls.telefone.invalid &&
+            (clineteForm.controls.telefone.dirty || clineteForm.controls.telefone.touched)
+          "
+          class="mt-1 text-sm text-red-500"
+        >
+          <small *ngIf="clineteForm.controls.telefone.errors?.['required']"
+            >Telefone é obrigatório</small
+          >
+        </div>
+      </label>
+    </div>
+
+    <div class="flex justify-end gap-3 border-t border-secondary pt-5">
+      <button
+        type="button"
+        (click)="closeClientModal()"
+        class="rounded px-4 py-2 text-sm font-medium text-primary hover:bg-secondary"
+      >
+        Cancelar
+      </button>
+      <button
+        type="submit"
+        [disabled]="clineteForm.invalid"
+        class="rounded bg-primary px-5 py-2 text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--hover-primary)] disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-400"
+      >
+        Continuar
+      </button>
+    </div>
+  </form>
+</app-modal>

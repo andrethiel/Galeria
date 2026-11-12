@@ -1,3 +1,6 @@
 <Solution>
-  <Project Path="Galeria.csproj" />
+  <Project Path="Galeria.Api/Galeria.Api.csproj" Id="f5ccd92d-2cce-458d-9033-09439cf6cd28" />
+  <Project Path="Galeria.Application/Galeria.Application.csproj" Id="9fdfbfc6-7adb-4525-bd20-c0d72567923c" />
+  <Project Path="Galeria.Domain/Galeria.Domain.csproj" Id="818ae7d3-c631-4848-ae41-b0f3088e76c4" />
+  <Project Path="Galeria.Infrastructure/Galeria.Infrastructure.csproj" Id="660b65f4-ee7a-4cee-8458-48b91859ba13" />
 </Solution>

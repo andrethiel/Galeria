@@ -1,0 +1,17 @@
+<div class="relative max-w-svw">
+  <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+    <app-icons [name]="Icon" class="h-4 w-4"></app-icons>
+  </div>
+  <input
+    [id]="Id"
+    [type]="Telefone || Cep ? 'tel' : Type"
+    [placeholder]="Placeholder"
+    [formControl]="control"
+    [mask]="Telefone ? '(00) 00000-0000' : Cep ? '00000-000' : ''"
+    [attr.inputmode]="Telefone || Cep ? 'numeric' : 'text'"
+    [attr.autocomplete]="Telefone ? 'tel' : Cep ? 'postal-code' : 'off'"
+    class="w-full block rounded-xl border bg-white py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent transition"
+    [dropSpecialCharacters]="Telefone || Cep"
+    (blur)="blur.emit($event)"
+  />
+</div>
