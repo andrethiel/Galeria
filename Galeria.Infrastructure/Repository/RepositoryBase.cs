@@ -53,6 +53,12 @@ namespace Galeria.Infrastructure.Repository
             return model;
         }
 
+        public TEntity Adicionar(TEntity model)
+        {
+            _DbSet.Add(model);
+            return model;
+        }
+
         public async Task<List<TEntity>> InserirRange(List<TEntity> models)
         {
             _DbSet.AddRange(models);

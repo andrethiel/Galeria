@@ -10,5 +10,6 @@ namespace Galeria.Application.Interfaces
     public interface IClienteServices
     {
         public Task<ClienteResponse> InserirCliente(ClienteCreateRequest model);
+        public Task<ClienteGaleriaSessaoResponse> InserirClienteComGaleria(ClienteGaleriaCreateRequest model);
     }
 }

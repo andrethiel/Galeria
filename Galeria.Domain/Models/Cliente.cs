@@ -17,7 +17,7 @@ namespace Galeria.Domain.Models
         private Cliente(string nome, string email, string telefone)
         {
             Guid = Guid.NewGuid();
-            DataCriacao = DateTime.UtcNow;
+            DataCriacao = DateTime.Now;
             AtualizarDados(nome, email, telefone);
         }
 
@@ -29,7 +29,7 @@ namespace Galeria.Domain.Models
         public void Atualizar(string nome, string email, string telefone)
         {
             AtualizarDados(nome, email, telefone);
-            DataAtualizacao = DateTime.UtcNow;
+            DataAtualizacao = DateTime.Now;
         }
 
         private void AtualizarDados(string nome, string email, string telefone)

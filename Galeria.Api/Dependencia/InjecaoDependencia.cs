@@ -21,10 +21,15 @@ namespace Galeria.Api.Dependencia
             });
 
             services.AddScoped(typeof(IRepositoryBase<>), typeof(RepositoryBase<>));
+            services.AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<DataContext>());
             services.AddScoped<IClienteRepository, ClienteRepository>();
             services.AddScoped<IClienteServices, ClienteServices>();
             services.AddScoped<IGaleriaServices, GaleriaServices>();
             services.AddScoped<IGaleriaRepository, GaleriaRepository>();
+            services.AddScoped<IGaleriaSecaoRepository, GaleriaSecaoRepository>();
+            services.AddScoped<ISecaoServices, SecaoServices>();
+            services.AddScoped<IGaleriaImagemServices, GaleriaImagemServices>();
+            services.AddScoped<IGaleriaImagemRepository, GaleriaImagemRepository>();
         }
     }
 }

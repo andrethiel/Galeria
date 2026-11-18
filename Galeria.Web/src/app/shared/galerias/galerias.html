@@ -15,7 +15,8 @@
       class="pointer-events-none absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100"
     >
       <a
-        routerLink="/"
+        href=""
+        (click)="abrirEdicao($event)"
         [attr.aria-label]="'Abrir ' + galerias.nome"
         class="pointer-events-auto grid size-12 place-items-center text-white"
       >
@@ -29,6 +30,7 @@
       <button
         type="button"
         aria-label="Editar galeria"
+        (click)="abrirEdicao($event)"
         class="grid size-8 place-items-center rounded-full text-white drop-shadow hover:bg-white/20"
       >
         <app-icons name="pencil" class="size-5" />

@@ -9,5 +9,6 @@ namespace Galeria.Application.Interfaces
     public interface IGaleriaServices
     {
         Task<GaleriaResponse> CadastroGaleria(GaleriaCreateRequest model);
+        Task<List<GaleriaResponse>> ListarGalerias();
     }
 }

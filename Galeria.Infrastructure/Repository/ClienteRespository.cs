@@ -14,5 +14,7 @@ namespace Galeria.Infrastructure.Repository
            await _repositoryBase.Filtrar(filter, include);
 
         public async Task<Cliente> InserirCliente(Cliente model) => await _repositoryBase.Inserir(model);
+
+        public Cliente AdicionarCliente(Cliente model) => _repositoryBase.Adicionar(model);
     }   
 }

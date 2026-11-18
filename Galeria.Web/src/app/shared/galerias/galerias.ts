@@ -1,8 +1,10 @@
-import { Component, Input } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, Input, inject } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 import { GaleriaResponse } from '../../core/models/GaleriaResponse';
 import { IconsComponent } from '../icons/icons';
 import { ModalComponent } from '../modal/modal';
+import { GaleriaState } from '../../core/state/galeria.state';
+import { GaleriaSecaoState } from '../../core/state/galeriaSecao.state';
 
 @Component({
   selector: 'app-galerias',
@@ -11,6 +13,9 @@ import { ModalComponent } from '../modal/modal';
 })
 export class Galerias {
   @Input() galerias!: GaleriaResponse;
+  private readonly router = inject(Router);
+  private readonly galeriaState = inject(GaleriaState);
+  private readonly galeriaSecaoState = inject(GaleriaSecaoState);
   menuOpen = false;
   modal: 'share' | 'activity' | null = null;
   activeActivityTab = 'Registrar E-mails';
@@ -32,5 +37,13 @@ export class Galerias {
 
   selectActivityTab(tab: string): void {
     this.activeActivityTab = tab;
+  }
+
+  abrirEdicao(event?: Event): void {
+    event?.stopPropagation();
+    event?.preventDefault();
+    this.galeriaState.criar([this.galerias]);
+    this.galeriaSecaoState.criar(this.galerias.secoes ?? []);
+    void this.router.navigate(['/new']);
   }
 }

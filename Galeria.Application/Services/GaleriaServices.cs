@@ -4,6 +4,7 @@ using Galeria.Application.Exceptions;
 using Galeria.Application.Interfaces;
 using Galeria.Domain.Interfaces;
 using Galeria.Domain.Models;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -21,10 +22,18 @@ namespace Galeria.Application.Services
                 throw new ServicesException("Cliente já possui uma galeria publicada.");
             }
 
-            var galeriaModel = Domain.Models.Galeria.Criar(model.ClienteId, model.Slug, model.Status, null, null, null, null);
+            var galeriaModel = Domain.Models.Galeria.Criar(model.ClienteId, null, model.Status, null, null, null, null);
 
             var insertedGaleria = await _galeriaRepository.CadastroGaleria(galeriaModel);
             return MapResponse(insertedGaleria);
+        }
+
+        public async Task<List<GaleriaResponse>> ListarGalerias()
+        {
+            var galerias = await _galeriaRepository.FiltrarGalerias(
+                _ => true,
+                query => query.Include(galeria => galeria.GaleriaSecao));
+            return galerias.Select(MapResponse).ToList();
         }
 
         private GaleriaResponse MapResponse(Domain.Models.Galeria model)
@@ -36,10 +45,14 @@ namespace Galeria.Application.Services
                 ClienteId = model.ClienteId,
                 Slug = model.Slug,
                 Status = model.Status,
-                SenhaHash = model.SenhaHash,
-                Token = model.Token,
                 DataPublicacao = model.DataPublicacao,
-                DataExpiracao = model.DataExpiracao
+                DataExpiracao = model.DataExpiracao,
+                Secoes = model.GaleriaSecao?.Select(secao => new GaleriaSecaoResponse
+                {
+                    Id = secao.Id,
+                    Guid = secao.Guid,
+                    Nome = secao.Nome,
+                }).ToList() ?? new List<GaleriaSecaoResponse>()
             };
         }
     }

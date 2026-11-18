@@ -3,6 +3,7 @@ using Galeria.Api.Dependencia;
 using Galeria.Api.Extensions;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -59,6 +60,8 @@ builder.Services.RegisterServices(builder.Configuration);
 
 
 var app = builder.Build();
+var imagensPath = Path.Combine(Directory.GetCurrentDirectory(), "Imagens");
+Directory.CreateDirectory(imagensPath);
 
 if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
 {
@@ -72,6 +75,11 @@ else
 
 app.UseCustomExceptionMiddleware();
 app.UseHttpsRedirection();
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(imagensPath),
+    RequestPath = "/Imagens"
+});
 app.UseRouting();
 app.UseCors("AllowFrontend");
 app.UseRateLimiter();

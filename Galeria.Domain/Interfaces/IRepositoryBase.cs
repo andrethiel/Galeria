@@ -9,6 +9,7 @@ namespace Galeria.Domain.Interfaces
     public interface IRepositoryBase<TEntity>
     {
         Task<TEntity?> Inserir(TEntity model);
+        TEntity Adicionar(TEntity model);
         Task<List<TEntity>> InserirRange(List<TEntity> model);
         Task<TEntity?> Editar(TEntity model);
         Task<List<TEntity>> Listar(Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> include = null);

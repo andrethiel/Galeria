@@ -16,5 +16,13 @@ namespace Galeria.Api.Controllers
             var galeriaResponse = await _galeriaServices.CadastroGaleria(galeria);
             return Ok(BaseResponseFactory.Success(galeriaResponse));
         }
+
+        [HttpGet]
+        [Route("Galerias")]
+        public async Task<IActionResult> ListarGalerias()
+        {
+            var galerias = await _galeriaServices.ListarGalerias();
+            return Ok(BaseResponseFactory.Success(galerias));
+        }
     }
 }

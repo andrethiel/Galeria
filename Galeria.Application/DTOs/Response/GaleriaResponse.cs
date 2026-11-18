@@ -16,5 +16,6 @@ namespace Galeria.Application.DTOs.Response
         public string Token { get; set; }
         public DateTime? DataPublicacao { get; set; }
         public DateTime? DataExpiracao { get; set; }
+        public List<GaleriaSecaoResponse> Secoes { get; set; } = new();
     }
 }

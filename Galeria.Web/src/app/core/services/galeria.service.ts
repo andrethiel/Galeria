@@ -14,4 +14,8 @@ export class GaleriaService {
   cadastrarGaleria(cliente: GaleriaCreateRequest) {
     return this.http.post<GaleriaResponse>(`${this.api}/CadastrarGaleria`, cliente);
   }
+
+  listarGalerias() {
+    return this.http.get<GaleriaResponse[]>(`${this.api}/Galerias`);
+  }
 }

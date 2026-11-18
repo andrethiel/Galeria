@@ -1,5 +1,7 @@
 @charset "UTF-8";
 
+@import '../node_modules/flatpickr/dist/flatpickr.css';
+
 @import 'tailwindcss';
 @theme {
   --color-primary: #49331e;

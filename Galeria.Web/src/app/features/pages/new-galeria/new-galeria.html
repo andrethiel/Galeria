@@ -1,4 +1,4 @@
-@if (selectedFiles.length === 0 && sections.length === 0) {
+@if (selectedFiles.length === 0 && sections.length === 1) {
   <section
     class="mx-auto w-[calc(100%-1.25rem)] max-w-[116rem] py-6 sm:w-[calc(100%-2rem)] sm:py-8"
   >
@@ -85,7 +85,17 @@
               }
             </span>
             <span class="flex-1 text-center font-medium">{{ section.name }}</span>
-            @if (sections.length > 1) {
+             @if (sections.length > 1) {
+               <span
+                 role="button"
+                 tabindex="0"
+                 aria-label="Editar seção"
+                 (click)="$event.stopPropagation(); editSection(index)"
+                 (keydown.enter)="$event.stopPropagation(); editSection(index)"
+                 class="grid size-7 place-items-center rounded text-neutral-500 hover:bg-secondary hover:text-primary"
+               >
+                 <app-icons name="pencil" class="size-4" />
+               </span>
               <span
                 role="button"
                 tabindex="0"
@@ -271,66 +281,62 @@
     </nav>
 
     @if (settingsTab === 'Geral') {
-      <div
-        class="mx-auto grid w-full max-w-3xl flex-1 grid-cols-1 gap-x-8 gap-y-8 px-6 py-10 sm:grid-cols-[7rem_1fr] sm:px-10"
-      >
-        <h3 class="m-0 text-base font-normal text-neutral-700 sm:pt-2">Básico</h3>
-        <div class="space-y-7">
-          <label class="block">
-            <span class="block text-sm text-red-500">Nome da Galeria</span>
-            <input
-              type="text"
-              [(ngModel)]="galleryName"
-              placeholder="Nome da Galeria"
-              class="w-full border-0 border-b border-red-500 px-0 py-2 text-base text-neutral-800 outline-none placeholder:text-red-500"
-            />
-            @if (!galleryName.trim()) {
-              <span class="mt-1 block text-xs text-red-500">Este campo é obrigatório.</span>
-            }
-          </label>
+      <form class="flex flex-col gap-6 p-6 sm:p-10">
+        <div class="text-center">
+          <h2 class="m-0 text-3xl font-light tracking-[-0.04em] text-primary">Cadastrar Galeria</h2>
+          <p class="mt-2 text-sm text-neutral-500">Informe os dados da galeria para criá-la.</p>
+        </div>
 
-          <label class="block">
-            <span class="sr-only">Data da sessão de fotos</span>
-            <div class="flex items-center border-b border-neutral-300">
-              <input
-                type="date"
-                [(ngModel)]="sessionDate"
-                placeholder="Data da sessão de fotos"
-                class="w-full border-0 px-0 py-2 text-base text-neutral-500 outline-none"
-              />
-              <app-icons name="calendar-days" class="size-5 text-neutral-500" />
-            </div>
-          </label>
-
-          <h3 class="m-0 pt-3 text-base font-normal text-neutral-700">Acesso</h3>
-
-          <label class="block">
-            <span class="block text-sm text-red-500">URL da Galeria</span>
-            <input
-              type="url"
-              [(ngModel)]="galleryUrl"
-              class="w-full border-0 border-b border-red-500 px-0 py-2 text-base text-neutral-500 outline-none"
-            />
-            <span class="mt-1 block text-xs text-red-500">Este campo é obrigatório.</span>
-          </label>
-
-          <label class="block">
-            <span class="sr-only">Senha</span>
-            <div class="border-b border-neutral-300">
-              <input
-                type="password"
-                [(ngModel)]="password"
-                maxlength="20"
-                placeholder="Senha"
-                class="w-full border-0 px-0 py-2 text-base text-neutral-500 outline-none"
-              />
-              <span class="block text-right text-xs text-slate-700"
-                >{{ password.length }} / 20</span
+        <div class="mx-auto grid w-full max-w-xl gap-5">
+          <label class="grid gap-2 text-sm text-neutral-700">
+            <span>Nome da Galeria</span>
+            <app-input [control]="formGaleria.controls.slug" Icon="user"></app-input>
+            <div
+              *ngIf="
+                formGaleria.controls.slug.invalid &&
+                (formGaleria.controls.slug.dirty || formGaleria.controls.slug.touched)
+              "
+              class="mt-1 text-sm text-red-500"
+            >
+              <small *ngIf="formGaleria.controls.slug.errors?.['required']"
+                >Nome da Galeria é obrigatório</small
               >
             </div>
           </label>
+          <label class="grid gap-2 text-sm text-neutral-700">
+            <span>Data de Publicação</span>
+            <app-datetimepicker
+              [control]="formGaleria.controls.dataPublicacao"
+              Icon="calendar-clock"
+              DateFormat="d/m/Y"
+              [Tempo]="false"
+              (dateChange)="onPublicationDateChange($event)"
+            ></app-datetimepicker>
+            <div
+              *ngIf="
+                formGaleria.controls.dataPublicacao.invalid &&
+                (formGaleria.controls.dataPublicacao.dirty ||
+                  formGaleria.controls.dataPublicacao.touched)
+              "
+              class="mt-1 text-sm text-red-500"
+            >
+              <small *ngIf="formGaleria.controls.dataPublicacao.errors?.['required']"
+                >Data de Publicação é obrigatória</small
+              >
+            </div>
+          </label>
+          <label class="grid gap-2 text-sm text-neutral-700">
+            <span>Data de Expiração</span>
+            <app-datetimepicker
+              [control]="formGaleria.controls.dataExpiracao"
+              Icon="calendar-clock"
+              DateFormat="d/m/Y"
+              [Tempo]="false"
+              [MinDate]="formGaleria.controls.dataPublicacao.value"
+            ></app-datetimepicker>
+          </label>
         </div>
-      </div>
+      </form>
     } @else {
       <div class="grid flex-1 place-items-center p-8 text-center text-sm text-neutral-600">
         <p>As opções de {{ settingsTab.toLocaleLowerCase() }} estarão disponíveis aqui.</p>
@@ -348,13 +354,54 @@
       <button
         type="button"
         (click)="saveSettings()"
-        [disabled]="!galleryName.trim() || !galleryUrl.trim()"
+        [disabled]="formGaleria.invalid"
         class="rounded bg-primary px-5 py-2 text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--hover-primary)] disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-400"
       >
         Salvar
       </button>
     </footer>
   </div>
+  </app-modal>
+
+<app-modal [Open]="sectionModalOpen" (Closed)="closeSectionModal()">
+  <form class="flex flex-col gap-6 p-6 sm:p-10" (ngSubmit)="saveSection()" novalidate>
+    <div class="text-center">
+      <h2 class="m-0 text-3xl font-light tracking-[-0.04em] text-primary">
+        {{ sectionModalMode === 'edit' ? 'Editar seção' : 'Adicionar seção' }}
+      </h2>
+      <p class="mt-2 text-sm text-neutral-500">Informe o nome da seção da galeria.</p>
+    </div>
+
+    <label class="grid gap-2 text-sm text-neutral-700">
+      <span>Nome da seção</span>
+      <input
+        type="text"
+        name="sectionName"
+        [(ngModel)]="sectionName"
+        maxlength="100"
+        autofocus
+        required
+        class="w-full rounded border border-secondary bg-secondary/10 px-4 py-3 outline-none transition focus:border-primary focus:ring-1 focus:ring-primary"
+      />
+    </label>
+
+    <div class="flex justify-end gap-3 border-t border-secondary pt-5">
+      <button
+        type="button"
+        (click)="closeSectionModal()"
+        class="rounded px-4 py-2 text-sm font-medium text-primary hover:bg-secondary"
+      >
+        Cancelar
+      </button>
+      <button
+        type="submit"
+        [disabled]="!sectionName.trim()"
+        class="rounded bg-primary px-5 py-2 text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--hover-primary)] disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-400"
+      >
+        Salvar
+      </button>
+    </div>
+  </form>
 </app-modal>
 
 <app-modal [Open]="clientModalOpen" (Closed)="closeClientModal()">

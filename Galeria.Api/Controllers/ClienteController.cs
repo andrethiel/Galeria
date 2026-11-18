@@ -16,5 +16,13 @@ namespace Galeria.Api.Controllers
             var clienteResponse = await _clienteService.InserirCliente(cliente);
             return Ok(BaseResponseFactory.Success(clienteResponse));
         }
+
+        [HttpPost]
+        [Route("/CadastrarClienteComGaleria")]
+        public async Task<IActionResult> CadastrarClienteComGaleria([FromBody] ClienteGaleriaCreateRequest cliente)
+        {
+            var response = await _clienteService.InserirClienteComGaleria(cliente);
+            return Ok(BaseResponseFactory.Success(response));
+        }
     }
 }

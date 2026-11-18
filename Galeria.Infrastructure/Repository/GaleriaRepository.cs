@@ -12,6 +12,8 @@ namespace Galeria.Infrastructure.Repository
     {
         public Task<Domain.Models.Galeria> CadastroGaleria(Domain.Models.Galeria model) => _repositoryBase.Inserir(model);
 
+        public Domain.Models.Galeria AdicionarGaleria(Domain.Models.Galeria model) => _repositoryBase.Adicionar(model);
+
         public Task<List<Domain.Models.Galeria>> FiltrarGalerias(Expression<Func<Domain.Models.Galeria, bool>> filter, Func<IQueryable<Domain.Models.Galeria>, IIncludableQueryable<Domain.Models.Galeria, object>> include = null) =>
             _repositoryBase.Filtrar(filter, include);
     }

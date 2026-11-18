@@ -14,6 +14,7 @@ namespace Galeria.Domain.Models
         public string Token { get; private set; } = string.Empty;
         public DateTime? DataPublicacao { get; private set; }
         public DateTime? DataExpiracao { get; private set; }
+        public List<GaleriaSecao> GaleriaSecao { get; set; }
 
         protected Galeria()
         {
@@ -29,7 +30,7 @@ namespace Galeria.Domain.Models
             DateTime? dataExpiracao)
         {
             Guid = Guid.NewGuid();
-            DataCriacao = DateTime.UtcNow;
+            DataCriacao = DateTime.Now;
             AtualizarDados(clienteId, slug, status, senhaHash, token, dataPublicacao, dataExpiracao);
         }
 
@@ -55,7 +56,7 @@ namespace Galeria.Domain.Models
             DateTime? dataExpiracao)
         {
             AtualizarDados(clienteId, slug, status, senhaHash, token, dataPublicacao, dataExpiracao);
-            DataAtualizacao = DateTime.UtcNow;
+            DataAtualizacao = DateTime.Now;
         }
 
         private void AtualizarDados(

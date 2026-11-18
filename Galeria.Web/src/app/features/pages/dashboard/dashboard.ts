@@ -14,44 +14,34 @@ import { AlertService } from '../../../core/services/alert.service';
 import { ClienteState } from '../../../core/state/cliente.state';
 import { CommonModule } from '@angular/common';
 import { GaleriaState } from '../../../core/state/galeria.state';
+import { DateTimePickerComponent } from '../../../shared/datetimepicket/datetimepicket';
+import { GaleriaSecaoState } from '../../../core/state/galeriaSecao.state';
+import { SessionStorageService } from '../../../core/services/session-storage.service';
 import { GaleriaService } from '../../../core/services/galeria.service';
-import { GaleriaCreateRequest } from '../../../core/models/create/GaleriaCreateRequest';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [FormsModule, IconsComponent, Galerias, ModalComponent, InputComponent, CommonModule],
+  imports: [
+    FormsModule,
+    IconsComponent,
+    Galerias,
+    ModalComponent,
+    InputComponent,
+    CommonModule,
+    DateTimePickerComponent,
+  ],
   templateUrl: './dashboard.html',
 })
 export class Dashboard implements OnInit {
-  readonly galleries: GaleriaResponse[];
+  readonly galleries: GaleriaResponse[] = [];
 
   constructor(
     private readonly router: Router,
     private readonly clientService: ClientService,
+    private readonly sessionStorage: SessionStorageService,
     private readonly galeriaService: GaleriaService,
     private fb: FormBuilder,
-  ) {
-    this.galleries = [
-      {
-        guid: '1',
-        nome: 'My Gallery',
-        image:
-          'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=900&q=80',
-      },
-      {
-        guid: '2',
-        nome: 'Sample Organized into Sections',
-        image:
-          'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=900&q=80',
-      },
-      {
-        guid: '3',
-        nome: 'Sample',
-        image:
-          'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=900&q=80',
-      },
-    ];
-  }
+  ) {}
 
   searchTerm = '';
   searchOpen = false;
@@ -62,7 +52,7 @@ export class Dashboard implements OnInit {
   alert = inject(AlertService);
   clienteState = inject(ClienteState);
   galeriaState = inject(GaleriaState);
-
+  galeriaSecaoState = inject(GaleriaSecaoState);
   clineteForm!: FormGroup<FormModel<ClienteCreateRequest>>;
 
   ngOnInit(): void {
@@ -70,6 +60,27 @@ export class Dashboard implements OnInit {
       nome: this.fb.control<string | null>(null, Validators.required),
       email: this.fb.control<string | null>(null, [Validators.required, Validators.email]),
       telefone: this.fb.control<string | null>(null),
+    });
+
+    this.carregarGalerias();
+  }
+
+  private carregarGalerias(): void {
+    this.galeriaService.listarGalerias().subscribe({
+      next: (response) => {
+        this.responseHandler.handle(response, (galerias) => {
+          this.galleries.splice(
+            0,
+            this.galleries.length,
+            ...galerias.map((galeria) => ({
+              ...galeria,
+              nome: galeria.slug || `Galeria ${galeria.id}`,
+              image: galeria.image || '',
+            })),
+          );
+        });
+      },
+      error: (error) => this.responseHandler.handleErro(error),
     });
   }
 
@@ -118,20 +129,15 @@ export class Dashboard implements OnInit {
     }
     const form = this.clineteForm.getRawValue();
     this.clientModalOpen = false;
-    this.clientService.inserirCliente(form).subscribe({
+    this.clientService.inserirClienteComGaleria(form).subscribe({
       next: (response) => {
         this.responseHandler.handle(response, (dados) => {
           this.alert.sucesso('Cliente salvo com sucesso!');
-          this.clienteState.atualizar(dados);
-          this.galeriaCadastro(dados.id).subscribe({
-            next: (galeriaResponse) => {
-              this.responseHandler.handle(galeriaResponse, (galeria) => {
-                this.galeriaState.atualizar(galeria);
-                void this.router.navigate(['/new']);
-              });
-            },
-            error: (error) => this.responseHandler.handleErro(error),
-          });
+           this.clienteState.atualizar(dados.cliente);
+           this.galeriaState.atualizar(dados.galeria);
+           this.galeriaSecaoState.atualizar(dados.galeriaSecao);
+           this.sessionStorage.salvarClienteGaleria(dados);
+           void this.router.navigate(['/new']);
         });
       },
       error: (error) => {
@@ -147,16 +153,5 @@ export class Dashboard implements OnInit {
         console.log(nome, control.errors);
       }
     });
-  }
-
-  private galeriaCadastro(idcliente: number) {
-    const galeria: GaleriaCreateRequest = {
-      clienteId: idcliente,
-      slug: null,
-      dataPublicacao: null,
-      dataExpiracao: null,
-    };
-
-    return this.galeriaService.cadastrarGaleria(galeria);
   }
 }
