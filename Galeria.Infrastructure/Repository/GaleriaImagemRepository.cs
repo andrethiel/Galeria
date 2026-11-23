@@ -1,5 +1,6 @@
 using Galeria.Domain.Interfaces;
 using Galeria.Domain.Models;
+using Microsoft.EntityFrameworkCore.Query;
 
 namespace Galeria.Infrastructure.Repository
 {
@@ -7,9 +8,10 @@ namespace Galeria.Infrastructure.Repository
     {
         public GaleriaImagem InserirGaleriaImagem(GaleriaImagem imagem) => repositoryBase.Adicionar(imagem);
 
-        public Task<GaleriaImagem?> ObterGaleriaImagem(int id) => repositoryBase.ObterPorId(id);
+        public Task<GaleriaImagem?> ObterGaleriaImagem(int id, Func<IQueryable<GaleriaImagem>, IIncludableQueryable<GaleriaImagem, object>> include = null) => repositoryBase.ObterPorId(id, include);
 
-        public Task<List<GaleriaImagem>> ListarPorSecao(int galeriaSecaoId) =>
-            repositoryBase.Filtrar(x => x.GaleriaSecaoId == galeriaSecaoId);
+        public Task<List<GaleriaImagem>> ListarPorSecao(int galeriaSecaoId) => repositoryBase.ListarPorId(galeriaSecaoId);
+
+        public void ExcluirGaleriaImagem(GaleriaImagem imagem) => repositoryBase.Excluir(imagem);
     }
 }

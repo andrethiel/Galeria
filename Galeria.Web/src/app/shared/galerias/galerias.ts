@@ -44,6 +44,8 @@ export class Galerias {
     event?.preventDefault();
     this.galeriaState.criar([this.galerias]);
     this.galeriaSecaoState.criar(this.galerias.secoes ?? []);
-    void this.router.navigate(['/new']);
+    void this.router.navigate(['/new'], {
+      queryParams: { galeriaId: this.galerias.id },
+    });
   }
 }

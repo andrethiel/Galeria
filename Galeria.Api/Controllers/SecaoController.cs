@@ -25,5 +25,13 @@ namespace Galeria.Api.Controllers
             var secao = await _secaoServices.EditarSecao(model);
             return Ok(BaseResponseFactory.Success(secao));
         }
+
+        [HttpDelete]
+        [Route("SecaoExcluir/{id:int}")]
+        public async Task<IActionResult> ExcluirSecao(int id)
+        {
+            var secao = await _secaoServices.ExcluirSecao(id);
+            return Ok(BaseResponseFactory.Success(secao));
+        }
     }
 }

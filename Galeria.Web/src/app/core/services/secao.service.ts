@@ -16,4 +16,8 @@ export class SecaoService {
   editar(id: number, nome: string) {
     return this.http.put<GaleriaSecaoResponse>(`${this.api}/SecaoEditar`, { id, nome });
   }
+
+  excluir(id: number) {
+    return this.http.delete<GaleriaSecaoResponse>(`${this.api}/SecaoExcluir/${id}`);
+  }
 }

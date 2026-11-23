@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { IconsComponent } from '../../../shared/icons/icons';
 import { Galerias } from '../../../shared/galerias/galerias';
 import { GaleriaResponse } from '../../../core/models/GaleriaResponse';
-import { ClientService } from '../../../core/services/client.service';
+import { ClienteService } from '../../../core/services/cliente.service';
 import { ModalComponent } from '../../../shared/modal/modal';
 import { FormModel } from '../../../core/models/FormModel';
 import { ClienteCreateRequest } from '../../../core/models/create/ClienteCreateRequest';
@@ -14,22 +14,13 @@ import { AlertService } from '../../../core/services/alert.service';
 import { ClienteState } from '../../../core/state/cliente.state';
 import { CommonModule } from '@angular/common';
 import { GaleriaState } from '../../../core/state/galeria.state';
-import { DateTimePickerComponent } from '../../../shared/datetimepicket/datetimepicket';
 import { GaleriaSecaoState } from '../../../core/state/galeriaSecao.state';
 import { SessionStorageService } from '../../../core/services/session-storage.service';
 import { GaleriaService } from '../../../core/services/galeria.service';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [
-    FormsModule,
-    IconsComponent,
-    Galerias,
-    ModalComponent,
-    InputComponent,
-    CommonModule,
-    DateTimePickerComponent,
-  ],
+  imports: [FormsModule, IconsComponent, Galerias, ModalComponent, InputComponent, CommonModule],
   templateUrl: './dashboard.html',
 })
 export class Dashboard implements OnInit {
@@ -37,7 +28,7 @@ export class Dashboard implements OnInit {
 
   constructor(
     private readonly router: Router,
-    private readonly clientService: ClientService,
+    private readonly clientService: ClienteService,
     private readonly sessionStorage: SessionStorageService,
     private readonly galeriaService: GaleriaService,
     private fb: FormBuilder,
@@ -133,11 +124,11 @@ export class Dashboard implements OnInit {
       next: (response) => {
         this.responseHandler.handle(response, (dados) => {
           this.alert.sucesso('Cliente salvo com sucesso!');
-           this.clienteState.atualizar(dados.cliente);
-           this.galeriaState.atualizar(dados.galeria);
-           this.galeriaSecaoState.atualizar(dados.galeriaSecao);
-           this.sessionStorage.salvarClienteGaleria(dados);
-           void this.router.navigate(['/new']);
+          this.clienteState.atualizar(dados.cliente);
+          this.galeriaState.atualizar(dados.galeria);
+          this.galeriaSecaoState.atualizar(dados.galeriaSecao);
+          this.sessionStorage.salvarClienteGaleria(dados);
+          void this.router.navigate(['/new']);
         });
       },
       error: (error) => {

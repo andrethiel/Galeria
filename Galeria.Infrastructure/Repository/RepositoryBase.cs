@@ -53,6 +53,8 @@ namespace Galeria.Infrastructure.Repository
             return model;
         }
 
+        public void Excluir(TEntity model) => _DbSet.Remove(model);
+
         public TEntity Adicionar(TEntity model)
         {
             _DbSet.Add(model);

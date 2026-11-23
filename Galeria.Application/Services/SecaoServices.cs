@@ -5,13 +5,18 @@ using Galeria.Application.Exceptions;
 using Galeria.Application.Interfaces;
 using Galeria.Domain.Interfaces;
 using Galeria.Domain.Models;
+using Galeria.Application.Utils;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.EntityFrameworkCore;
 
 namespace Galeria.Application.Services
 {
-    public class SecaoServices(IGaleriaSecaoRepository _galeriaSecaoRepository, IUnitOfWork _unitOfWork) : ISecaoServices
+    public class SecaoServices(
+        IGaleriaSecaoRepository _galeriaSecaoRepository,
+        IGaleriaImagemRepository _galeriaImagemRepository,
+        IUnitOfWork _unitOfWork) : ISecaoServices
     {
         public async Task<GaleriaSecaoResponse> CadastrarSecao(SecaoCreateRequest model)
         {
@@ -38,9 +43,33 @@ namespace Galeria.Application.Services
             return MapResponse(secaoEditada);
         }
 
-        public Task<GaleriaSecaoResponse> ExcluirSecao(int id)
+        public async Task<GaleriaSecaoResponse> ExcluirSecao(int id)
         {
-            throw new NotImplementedException();
+            var secao = await _galeriaSecaoRepository.ObterGaleriaSecaoPorId(id, x => x.Include(x => x.GaleriaImagem));
+            if (secao is null)
+                throw new ServicesException("Seção não encontrada.");
+
+            await _unitOfWork.BeginTransactionAsync();
+
+            try
+            {
+                foreach (var imagem in secao.GaleriaImagem)
+                    _galeriaImagemRepository.ExcluirGaleriaImagem(imagem);
+
+                _galeriaSecaoRepository.ExcluirGaleriaSecao(secao);
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitTransactionAsync();
+            }
+            catch
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw;
+            }
+
+            foreach (var imagem in secao.GaleriaImagem)
+                ArquivoImagem.DeletaImagem(imagem.NomeArquivo);
+
+            return MapResponse(secao);
         }
 
         private GaleriaSecaoResponse MapResponse(GaleriaSecao model)

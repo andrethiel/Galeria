@@ -19,5 +19,7 @@ namespace Galeria.Infrastructure.Repository
 
         public Task<GaleriaSecao?> EditarGaleriaSecao(GaleriaSecao secao) => _repositoryBase.Editar(secao);
 
+        public void ExcluirGaleriaSecao(GaleriaSecao secao) => _repositoryBase.Excluir(secao);
+
     }
 }

@@ -18,4 +18,8 @@ export class GaleriaService {
   listarGalerias() {
     return this.http.get<GaleriaResponse[]>(`${this.api}/Galerias`);
   }
+
+  obterGaleria(id: number) {
+    return this.http.get<GaleriaResponse>(`${this.api}/Galerias/${id}`);
+  }
 }

@@ -9,5 +9,6 @@ namespace Galeria.Application.DTOs.Response
         public int Id { get; set; }
         public Guid Guid { get; set; }
         public string Nome { get; set; }
+        public List<GaleriaImagemResponse> Imagens { get; set; } = new();
     }
 }

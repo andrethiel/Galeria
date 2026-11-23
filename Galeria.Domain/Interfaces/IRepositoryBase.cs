@@ -12,6 +12,7 @@ namespace Galeria.Domain.Interfaces
         TEntity Adicionar(TEntity model);
         Task<List<TEntity>> InserirRange(List<TEntity> model);
         Task<TEntity?> Editar(TEntity model);
+        void Excluir(TEntity model);
         Task<List<TEntity>> Listar(Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> include = null);
         Task<List<TEntity>> ListarPorId(int id, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> include = null);
         Task<TEntity?> ObterPorId(int id, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> include = null);

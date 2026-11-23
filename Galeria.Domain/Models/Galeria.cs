@@ -15,6 +15,7 @@ namespace Galeria.Domain.Models
         public DateTime? DataPublicacao { get; private set; }
         public DateTime? DataExpiracao { get; private set; }
         public List<GaleriaSecao> GaleriaSecao { get; set; }
+        public Cliente Cliente { get; set; }
 
         protected Galeria()
         {

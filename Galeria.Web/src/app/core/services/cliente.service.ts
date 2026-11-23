@@ -4,9 +4,10 @@ import { environment } from '../../environments/environments';
 import { HttpService } from './http.service';
 import { ClienteResponse } from '../models/response/ClienteResponse';
 import { ClienteGaleriaResponse } from '../models/response/ClienteGaleriaResponse';
+import { ClienteEditRequest } from '../models/edit/ClienteEditRequest';
 
 @Injectable({ providedIn: 'root' })
-export class ClientService {
+export class ClienteService {
   private api = environment.apiUrl;
   constructor(private http: HttpService) {}
 
@@ -19,5 +20,9 @@ export class ClientService {
       ...cliente,
       slug: null,
     });
+  }
+
+  editarCliente(cliente: ClienteEditRequest) {
+    return this.http.post<ClienteResponse>(`${this.api}/EditarCliente`, cliente);
   }
 }

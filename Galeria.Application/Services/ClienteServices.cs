@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Galeria.Application.Helpers;
+using Galeria.Application.DTOs.Request.Edit;
 
 namespace Galeria.Application.Services
 {
@@ -84,6 +85,31 @@ namespace Galeria.Application.Services
             }
         }
 
+        public async Task<ClienteResponse> EditarCliente(ClienteEditRequest model)
+        {
+            var cliente = await _clienteRepository.ObterClientePorId(model.Id);
+
+            if (cliente == null)
+            {
+                throw new ServicesException("Cliente não encontrado.");
+            }
+
+            var emailCliente = await _clienteRepository.FiltrarCliente(x => x.Email == model.Email);
+
+            if (emailCliente.Where(x => x.Id != model.Id).Any())
+            {
+                throw new ServicesException("Já existe um email cadastrado");
+            }
+
+            var telefone = model.Telefone.Replace("/\\D/g", "");
+
+            cliente.Atualizar(model.Nome, model.Email,telefone);
+
+            var clienteAtualizado = await _clienteRepository.EditarCliente(cliente);
+
+            return MapResponse(clienteAtualizado);
+        }
+
         private ClienteResponse MapResponse(Cliente model)
         {
             return new ClienteResponse
@@ -120,5 +146,7 @@ namespace Galeria.Application.Services
                 Nome = model.Nome
             };
         }
+
+        
     }
 }

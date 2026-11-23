@@ -35,3 +35,23 @@ export abstract class CollectionState<T extends { guid?: string; id?: string | n
     this.items.set([]);
   }
 }
+
+export abstract class EntityState<T> {
+  protected readonly item = signal<T | null>(null);
+
+  criar(item: T): void {
+    this.item.set(item);
+  }
+
+  obter(): T | null {
+    return this.item();
+  }
+
+  atualizar(item: T): void {
+    this.item.set(item);
+  }
+
+  limpar(): void {
+    this.item.set(null);
+  }
+}

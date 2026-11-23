@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environments';
 import { GaleriaImagemResponse } from '../models/response/GaleriaImagemResponse';
+import { GaleriaSecaoResponse } from '../models/response/GaleriaSecaoResponse';
 import { HttpService } from './http.service';
 
 @Injectable({ providedIn: 'root' })
@@ -19,8 +20,14 @@ export class ImagemService {
   }
 
   listarPorSecao(galeriaId: number, galeriaSecaoId: number) {
-    return this.http.get<GaleriaImagemResponse[]>(
+    return this.http.get<GaleriaSecaoResponse[]>(
       `${this.api}/GaleriaImagem/Galeria/${galeriaId}/Secao/${galeriaSecaoId}`,
+    );
+  }
+
+  excluir(galeriaId: number, id: number) {
+    return this.http.delete<GaleriaImagemResponse>(
+      `${this.api}/GaleriaImagem/Galeria/${galeriaId}/${id}`,
     );
   }
 }

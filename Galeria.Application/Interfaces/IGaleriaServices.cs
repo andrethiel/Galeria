@@ -10,5 +10,6 @@ namespace Galeria.Application.Interfaces
     {
         Task<GaleriaResponse> CadastroGaleria(GaleriaCreateRequest model);
         Task<List<GaleriaResponse>> ListarGalerias();
+        Task<GaleriaResponse?> ObterGaleria(int id);
     }
 }

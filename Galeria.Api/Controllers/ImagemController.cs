@@ -24,5 +24,13 @@ namespace Galeria.Api.Controllers
             var imagens = await imagemServices.ListarPorSecao(galeriaId, galeriaSecaoId);
             return Ok(BaseResponseFactory.Success(imagens));
         }
+
+        [HttpDelete]
+        [Route("GaleriaImagem/Galeria/{galeriaId:int}/{id:int}")]
+        public async Task<IActionResult> Excluir(int galeriaId, int id)
+        {
+            var imagem = await imagemServices.Excluir(galeriaId, id);
+            return Ok(BaseResponseFactory.Success(imagem));
+        }
     }
 }

@@ -1,3 +1,4 @@
+import { ClienteResponse } from './response/ClienteResponse';
 import { GaleriaSecaoResponse } from './response/GaleriaSecaoResponse';
 
 export interface GaleriaResponse {
@@ -10,8 +11,8 @@ export interface GaleriaResponse {
   token?: string | null;
   dataPublicacao?: string | null;
   dataExpiracao?: string | null;
-  /** Campos usados pelos cards enquanto a API não os disponibiliza. */
   nome: string;
   image: string;
   secoes?: GaleriaSecaoResponse[];
+  cliente?: ClienteResponse;
 }

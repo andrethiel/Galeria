@@ -36,6 +36,16 @@ namespace Galeria.Application.Services
             return galerias.Select(MapResponse).ToList();
         }
 
+        public async Task<GaleriaResponse?> ObterGaleria(int id)
+        {
+            var galerias = await _galeriaRepository.FiltrarGalerias(
+                galeria => galeria.Id == id,
+                query => query.Include(x => x.Cliente).Include(galeria => galeria.GaleriaSecao));
+
+            var galeria = galerias.FirstOrDefault();
+            return galeria is null ? null : MapResponse(galeria);
+        }
+
         private GaleriaResponse MapResponse(Domain.Models.Galeria model)
         {
             return new GaleriaResponse
@@ -52,7 +62,14 @@ namespace Galeria.Application.Services
                     Id = secao.Id,
                     Guid = secao.Guid,
                     Nome = secao.Nome,
-                }).ToList() ?? new List<GaleriaSecaoResponse>()
+                }).ToList() ?? new List<GaleriaSecaoResponse>(),
+                Cliente = model.Cliente is null ? null : new ClienteResponse
+                {
+                    Id = model.Cliente.Id,
+                    Guid = model.Cliente.Guid,
+                    Nome = model.Cliente.Nome,
+                    Email = model.Cliente.Email,
+                }
             };
         }
     }

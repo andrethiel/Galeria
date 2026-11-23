@@ -52,6 +52,7 @@
         <app-icons name="user-round-pen" class="size-4" />
         Editar cliente
       </button>
+      <app-button>Estilo da galeria</app-button>
     </header>
 
     @if (sections.length < 2) {
@@ -85,17 +86,17 @@
               }
             </span>
             <span class="flex-1 text-center font-medium">{{ section.name }}</span>
-             @if (sections.length > 1) {
-               <span
-                 role="button"
-                 tabindex="0"
-                 aria-label="Editar seção"
-                 (click)="$event.stopPropagation(); editSection(index)"
-                 (keydown.enter)="$event.stopPropagation(); editSection(index)"
-                 class="grid size-7 place-items-center rounded text-neutral-500 hover:bg-secondary hover:text-primary"
-               >
-                 <app-icons name="pencil" class="size-4" />
-               </span>
+            @if (sections.length > 1) {
+              <span
+                role="button"
+                tabindex="0"
+                aria-label="Editar seção"
+                (click)="$event.stopPropagation(); editSection(index)"
+                (keydown.enter)="$event.stopPropagation(); editSection(index)"
+                class="grid size-7 place-items-center rounded text-neutral-500 hover:bg-secondary hover:text-primary"
+              >
+                <app-icons name="pencil" class="size-4" />
+              </span>
               <span
                 role="button"
                 tabindex="0"
@@ -361,7 +362,7 @@
       </button>
     </footer>
   </div>
-  </app-modal>
+</app-modal>
 
 <app-modal [Open]="sectionModalOpen" (Closed)="closeSectionModal()">
   <form class="flex flex-col gap-6 p-6 sm:p-10" (ngSubmit)="saveSection()" novalidate>
@@ -414,33 +415,19 @@
     <div class="mx-auto grid w-full max-w-xl gap-5">
       <label class="grid gap-2 text-sm text-neutral-700">
         <span>Nome</span>
-        <input
-          type="text"
-          name="clientName"
-          [(ngModel)]="cliente.nome"
-          required
-          class="w-full rounded border border-secondary bg-secondary/10 px-4 py-3 outline-none transition focus:border-primary focus:ring-1 focus:ring-primary"
-        />
+        <app-input [control]="formCliente.controls.nome" Icon="user"></app-input>
       </label>
       <label class="grid gap-2 text-sm text-neutral-700">
         <span>E-mail</span>
-        <input
-          type="email"
-          name="clientEmail"
-          [(ngModel)]="cliente.email"
-          required
-          class="w-full rounded border border-secondary bg-secondary/10 px-4 py-3 outline-none transition focus:border-primary focus:ring-1 focus:ring-primary"
-        />
+        <app-input [control]="formCliente.controls.email" Icon="mail"></app-input>
       </label>
       <label class="grid gap-2 text-sm text-neutral-700">
         <span>Telefone</span>
-        <input
-          type="tel"
-          name="clientPhone"
-          [(ngModel)]="cliente.telefone"
-          required
-          class="w-full rounded border border-secondary bg-secondary/10 px-4 py-3 outline-none transition focus:border-primary focus:ring-1 focus:ring-primary"
-        />
+        <app-input
+          [Telefone]="true"
+          [control]="formCliente.controls.telefone"
+          Icon="phone"
+        ></app-input>
       </label>
     </div>
 
@@ -454,7 +441,8 @@
       </button>
       <button
         type="submit"
-        [disabled]="!cliente.nome?.trim() || !cliente.email?.trim() || !cliente.telefone?.trim()"
+        [disabled]="!formCliente.valid"
+        (click)="editarCliente()"
         class="rounded bg-primary px-5 py-2 text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--hover-primary)] disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-400"
       >
         Salvar

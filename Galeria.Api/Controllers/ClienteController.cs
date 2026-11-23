@@ -1,5 +1,6 @@
 ﻿using Galeria.Api.Controllers.Response;
 using Galeria.Application.DTOs.Request.Create;
+using Galeria.Application.DTOs.Request.Edit;
 using Galeria.Application.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -23,6 +24,14 @@ namespace Galeria.Api.Controllers
         {
             var response = await _clienteService.InserirClienteComGaleria(cliente);
             return Ok(BaseResponseFactory.Success(response));
+        }
+
+        [HttpPost]
+        [Route("/EditarCliente")]
+        public async Task<IActionResult> EditarCliente([FromBody] ClienteEditRequest cliente)
+        {
+            var clienteResponse = await _clienteService.EditarCliente(cliente);
+            return Ok(BaseResponseFactory.Success(clienteResponse));
         }
     }
 }

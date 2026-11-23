@@ -13,5 +13,6 @@ namespace Galeria.Domain.Interfaces
         Task<GaleriaSecao> ObterGaleriaSecaoPorId(int id, Func<IQueryable<GaleriaSecao>, IIncludableQueryable<GaleriaSecao, object>> include = null);
         Task<List<GaleriaSecao>> FiltrarGaleriaSecao(Expression<Func<GaleriaSecao, bool>> filter, Func<IQueryable<GaleriaSecao>, IIncludableQueryable<GaleriaSecao, object>> include = null);
         Task<GaleriaSecao?> EditarGaleriaSecao(GaleriaSecao secao);
+        void ExcluirGaleriaSecao(GaleriaSecao secao);
     }
 }

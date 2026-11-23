@@ -16,5 +16,8 @@ namespace Galeria.Infrastructure.Repository
 
         public Task<List<Domain.Models.Galeria>> FiltrarGalerias(Expression<Func<Domain.Models.Galeria, bool>> filter, Func<IQueryable<Domain.Models.Galeria>, IIncludableQueryable<Domain.Models.Galeria, object>> include = null) =>
             _repositoryBase.Filtrar(filter, include);
+
+        public Task<Domain.Models.Galeria> ObterGaleriaPorId(int id, Func<IQueryable<Domain.Models.Galeria>, IIncludableQueryable<Domain.Models.Galeria, object>> include = null) =>
+            _repositoryBase.ObterPorId(id, include);
     }
 }

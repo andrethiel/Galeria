@@ -24,5 +24,13 @@ namespace Galeria.Api.Controllers
             var galerias = await _galeriaServices.ListarGalerias();
             return Ok(BaseResponseFactory.Success(galerias));
         }
+
+        [HttpGet]
+        [Route("Galerias/{id:int}")]
+        public async Task<IActionResult> ObterGaleria(int id)
+        {
+            var galeria = await _galeriaServices.ObterGaleria(id);
+            return Ok(BaseResponseFactory.Success(galeria));
+        }
     }
 }
