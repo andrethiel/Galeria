@@ -44,26 +44,34 @@
         </h1>
         <p class="m-0 mt-1 text-sm text-neutral-500">Organize suas fotos e seções.</p>
       </div>
-      <button
-        type="button"
-        (click)="openClientModal()"
-        class="inline-flex items-center justify-center gap-2 self-start rounded border border-secondary bg-secondary px-4 py-2.5 text-sm font-medium text-[var(--text-secondary)] transition-colors hover:bg-[var(--hover-secondary)] sm:self-center"
-      >
-        <app-icons name="user-round-pen" class="size-4" />
-        Editar cliente
-      </button>
-      <app-button>Estilo da galeria</app-button>
+      <div class="flex items-center gap-3 self-start sm:self-center">
+        <app-button [FullWidth]="false" (click)="openModalConfig()" Color="secondary">
+          <app-icons name="settings-2" class="size-4" />
+          Configurações galeria
+        </app-button>
+        <app-button [FullWidth]="false" (click)="openClientModal()" Color="secondary">
+          <app-icons name="user-pen" class="size-4" />
+          Editar cliente
+        </app-button>
+        <app-button [FullWidth]="false" (click)="publicarGaleria()">
+          <app-icons name="check" class="size-4" />
+          Publicar Galeria
+        </app-button>
+      </div>
     </header>
 
     @if (sections.length < 2) {
-      <button
-        type="button"
-        (click)="createSections()"
-        class="mx-auto flex items-center gap-2 rounded bg-secondary px-4 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--hover-secondary)]"
-      >
-        <app-icons name="plus" class="size-4" />
-        Criar Seções
-      </button>
+      <div class="flex">
+        <app-button
+          [FullWidth]="false"
+          (click)="createSections()"
+          Color="secondary"
+          class="mx-auto items-center"
+        >
+          <app-icons name="plus" class="size-4" />
+          Criar Seções
+        </app-button>
+      </div>
     }
 
     @if (sections.length > 1) {
@@ -153,6 +161,11 @@
                 selectedIndexes.size === 1 ? '' : 's'
               }}
             </span>
+            @if (!isSelectedImagePrincipal()) {
+              <app-button [Disabled]="selectedIndexes.size !== 1" (click)="imagemPrincipal()">
+                Imagem principal
+              </app-button>
+            }
             <button
               type="button"
               aria-label="Excluir imagens selecionadas"
@@ -183,6 +196,27 @@
         </div>
       </div>
 
+      @if (uploadingImages) {
+        <div class="mt-6 rounded border border-neutral-200 bg-neutral-50 p-4">
+          <div class="mb-2 flex justify-between text-sm text-neutral-700">
+            <span>Enviando imagens...</span>
+            <span>{{ uploadedImages }} de {{ totalImages }}</span>
+          </div>
+
+          <div class="h-2 w-full overflow-hidden rounded-full bg-neutral-200">
+            <div
+              class="h-full rounded-full bg-primary transition-all duration-300"
+              [style.width.%]="uploadProgress"
+            ></div>
+          </div>
+
+          <div class="mt-2 flex justify-between text-xs text-neutral-500">
+            <span>Imagem atual: {{ currentImageProgress }}%</span>
+            <span>Total: {{ uploadProgress }}%</span>
+          </div>
+        </div>
+      }
+
       <div class="mt-6 flex flex-wrap gap-3">
         @for (previewUrl of previewUrls; track previewUrl; let index = $index) {
           <div
@@ -203,6 +237,15 @@
             (dragend)="onDragEnd()"
           >
             <img [src]="previewUrl" alt="Imagem selecionada" class="h-full w-full object-contain" />
+            @if (imageIds[index] === primaryImageId) {
+              <span
+                class="absolute right-2 top-2 grid size-7 place-items-center rounded-full bg-white/95 text-green-600 shadow-sm"
+                title="Imagem principal"
+                aria-label="Imagem principal"
+              >
+                <app-icons name="badge-check" class="size-5" />
+              </span>
+            }
             <button
               type="button"
               aria-label="Visualizar imagem"
@@ -259,90 +302,64 @@
       </h2>
     </header>
 
-    <nav
-      class="flex justify-center border-b border-neutral-200 px-4"
-      aria-label="Configurações da galeria"
-    >
-      @for (tab of ['Geral', 'Interações', 'Downloads']; track tab) {
-        <button
-          type="button"
-          (click)="settingsTab = $any(tab)"
-          class="relative min-w-28 px-4 py-4 text-sm font-medium text-neutral-500 hover:text-neutral-900 sm:min-w-40"
-          [class.text-neutral-900]="settingsTab === tab"
-        >
-          {{ tab }}
-          @if (tab === 'Geral') {
-            <span class="absolute -right-1 top-3 size-1.5 rounded-full"></span>
-          }
-          @if (settingsTab === tab) {
-            <span class="absolute inset-x-0 bottom-[-1px] h-0.5 bg-primary"></span>
-          }
-        </button>
-      }
-    </nav>
+    <nav class="flex justify-center border-b border-neutral-200 px-4"></nav>
 
-    @if (settingsTab === 'Geral') {
-      <form class="flex flex-col gap-6 p-6 sm:p-10">
-        <div class="text-center">
-          <h2 class="m-0 text-3xl font-light tracking-[-0.04em] text-primary">Cadastrar Galeria</h2>
-          <p class="mt-2 text-sm text-neutral-500">Informe os dados da galeria para criá-la.</p>
-        </div>
-
-        <div class="mx-auto grid w-full max-w-xl gap-5">
-          <label class="grid gap-2 text-sm text-neutral-700">
-            <span>Nome da Galeria</span>
-            <app-input [control]="formGaleria.controls.slug" Icon="user"></app-input>
-            <div
-              *ngIf="
-                formGaleria.controls.slug.invalid &&
-                (formGaleria.controls.slug.dirty || formGaleria.controls.slug.touched)
-              "
-              class="mt-1 text-sm text-red-500"
-            >
-              <small *ngIf="formGaleria.controls.slug.errors?.['required']"
-                >Nome da Galeria é obrigatório</small
-              >
-            </div>
-          </label>
-          <label class="grid gap-2 text-sm text-neutral-700">
-            <span>Data de Publicação</span>
-            <app-datetimepicker
-              [control]="formGaleria.controls.dataPublicacao"
-              Icon="calendar-clock"
-              DateFormat="d/m/Y"
-              [Tempo]="false"
-              (dateChange)="onPublicationDateChange($event)"
-            ></app-datetimepicker>
-            <div
-              *ngIf="
-                formGaleria.controls.dataPublicacao.invalid &&
-                (formGaleria.controls.dataPublicacao.dirty ||
-                  formGaleria.controls.dataPublicacao.touched)
-              "
-              class="mt-1 text-sm text-red-500"
-            >
-              <small *ngIf="formGaleria.controls.dataPublicacao.errors?.['required']"
-                >Data de Publicação é obrigatória</small
-              >
-            </div>
-          </label>
-          <label class="grid gap-2 text-sm text-neutral-700">
-            <span>Data de Expiração</span>
-            <app-datetimepicker
-              [control]="formGaleria.controls.dataExpiracao"
-              Icon="calendar-clock"
-              DateFormat="d/m/Y"
-              [Tempo]="false"
-              [MinDate]="formGaleria.controls.dataPublicacao.value"
-            ></app-datetimepicker>
-          </label>
-        </div>
-      </form>
-    } @else {
-      <div class="grid flex-1 place-items-center p-8 text-center text-sm text-neutral-600">
-        <p>As opções de {{ settingsTab.toLocaleLowerCase() }} estarão disponíveis aqui.</p>
+    <form class="flex flex-col gap-6 p-6 sm:p-10">
+      <div class="text-center">
+        <h2 class="m-0 text-3xl font-light tracking-[-0.04em] text-primary">Cadastrar Galeria</h2>
+        <p class="mt-2 text-sm text-neutral-500">Informe os dados da galeria para criá-la.</p>
       </div>
-    }
+
+      <div class="mx-auto grid w-full max-w-xl gap-5">
+        <label class="grid gap-2 text-sm text-neutral-700">
+          <span>Nome da Galeria</span>
+          <app-input [control]="formGaleria.controls.slug" Icon="user"></app-input>
+          <div
+            *ngIf="
+              formGaleria.controls.slug.invalid &&
+              (formGaleria.controls.slug.dirty || formGaleria.controls.slug.touched)
+            "
+            class="mt-1 text-sm text-red-500"
+          >
+            <small *ngIf="formGaleria.controls.slug.errors?.['required']"
+              >Nome da Galeria é obrigatório</small
+            >
+          </div>
+        </label>
+        <label class="grid gap-2 text-sm text-neutral-700">
+          <span>Data de Publicação</span>
+          <app-datetimepicker
+            [control]="formGaleria.controls.dataPublicacao"
+            Icon="calendar-clock"
+            DateFormat="d/m/Y"
+            [Tempo]="false"
+            (dateChange)="onPublicationDateChange($event)"
+          ></app-datetimepicker>
+          <div
+            *ngIf="
+              formGaleria.controls.dataPublicacao.invalid &&
+              (formGaleria.controls.dataPublicacao.dirty ||
+                formGaleria.controls.dataPublicacao.touched)
+            "
+            class="mt-1 text-sm text-red-500"
+          >
+            <small *ngIf="formGaleria.controls.dataPublicacao.errors?.['required']"
+              >Data de Publicação é obrigatória</small
+            >
+          </div>
+        </label>
+        <label class="grid gap-2 text-sm text-neutral-700">
+          <span>Data de Expiração</span>
+          <app-datetimepicker
+            [control]="formGaleria.controls.dataExpiracao"
+            Icon="calendar-clock"
+            DateFormat="d/m/Y"
+            [Tempo]="false"
+            [MinDate]="formGaleria.controls.dataPublicacao.value"
+          ></app-datetimepicker>
+        </label>
+      </div>
+    </form>
 
     <footer class="flex justify-end gap-4 border-t border-neutral-100 px-6 py-5 sm:px-10">
       <button

@@ -109,6 +109,17 @@ namespace Galeria.Application.Utils
             return local.Substring(0, local.LastIndexOf(@"\"));
         }
 
+        public static string FormataURLR2(string imagem, string url)
+        {
+            if (string.IsNullOrEmpty(imagem))
+            {
+                return string.Empty;
+            }
+
+            return string.Format("{0}/{1}", url, imagem);
+            //return string.Format("https://api.revendafacilsemijoias.com.br/Imagens/{0}", imagem);
+        }
+
     }
 }
 

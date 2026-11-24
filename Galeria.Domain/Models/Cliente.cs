@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Galeria.Domain.Enums;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -6,9 +7,10 @@ namespace Galeria.Domain.Models
 {
     public class Cliente : Base
     {
-        public string Nome { get; private set; } = string.Empty;
-        public string Email { get; private set; } = string.Empty;
-        public string Telefone { get; private set; } = string.Empty;
+        public string Nome { get; private set; }
+        public string Email { get; private set; }
+        public string Telefone { get; private set; }
+        public TipoEnsaio TipoEnsaio { get; set; }
 
         protected Cliente()
         {

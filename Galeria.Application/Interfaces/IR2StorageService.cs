@@ -9,6 +9,7 @@ namespace Galeria.Application.Interfaces
     public interface IR2StorageService
     {
         Task<R2UploadResult> UploadAsync(IFormFile arquivo, string pasta);
+        Task DeleteAsync(string nomeArquivo);
         string GerarUrlUpload(string key, string contentType);
     }
 }

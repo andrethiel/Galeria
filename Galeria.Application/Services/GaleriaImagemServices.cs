@@ -1,7 +1,9 @@
 using Amazon.S3;
+using Galeria.Application.DTOs;
 using Galeria.Application.DTOs.Request.Create;
 using Galeria.Application.DTOs.Response;
 using Galeria.Application.Exceptions;
+using Galeria.Application.Helpers;
 using Galeria.Application.Interfaces;
 using Galeria.Application.Utils;
 using Galeria.Domain.Interfaces;
@@ -9,6 +11,7 @@ using Galeria.Domain.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace Galeria.Application.Services
 {
@@ -17,9 +20,10 @@ namespace Galeria.Application.Services
         IGaleriaSecaoRepository galeriaSecaoRepository,
         IGaleriaRepository galeriaRepository,
         IUnitOfWork unitOfWork,
-        IHttpContextAccessor httpContextAccessor,
-        IR2StorageService _r2StorageService) : IGaleriaImagemServices
+        IR2StorageService _r2StorageService, 
+        IOptions<CloudflareR2Settings> settings) : IGaleriaImagemServices
     {
+
         public async Task<GaleriaImagemResponse> Upload(ImagemCreateRequest model)
         {
             if (model.GaleriaId <= 0)
@@ -37,13 +41,20 @@ namespace Galeria.Application.Services
 
             var galeriaCliente = await galeriaRepository.ObterGaleriaPorId(model.GaleriaId, y => y.Include(cliente => cliente.Cliente));
 
+            var imagemFilter = await galeriaImagemRepository.FiltarImagens(x => x.NomeOriginal == model.Arquivo.FileName && x.GaleriaSecaoId == model.GaleriaSecaoId);
+
+            if (imagemFilter.Any())
+                throw new ServicesException("Imagem já inserida");
+
             await unitOfWork.BeginTransactionAsync();
+
+            var nomeArquivo = new R2UploadResult();
 
             try
             {
-                var nomeArquivo = await _r2StorageService.UploadAsync(model.Arquivo, galeriaCliente.Cliente.Nome);
+                nomeArquivo = await _r2StorageService.UploadAsync(model.Arquivo, galeriaCliente.ClienteId.ToString());
 
-                var imagem = GaleriaImagem.Criar(model.GaleriaSecaoId, nomeArquivo.Key);
+                var imagem = GaleriaImagem.Criar(model.GaleriaSecaoId, nomeArquivo.Key, nomeArquivo.NomeOriginal, model.ImagemPrincipal);
 
                 var imagemInserida = galeriaImagemRepository.InserirGaleriaImagem(imagem);
                 await unitOfWork.SaveChangesAsync();
@@ -57,13 +68,14 @@ namespace Galeria.Application.Services
                     GaleriaId = model.GaleriaId,
                     NomeArquivo = imagemInserida.NomeArquivo,
                     GaleriaSecaoId = imagemInserida.GaleriaSecaoId,
-                    Url = ArquivoImagem.FormataURL(imagemInserida.NomeArquivo, httpContextAccessor),
+                    Url = ArquivoImagem.FormataURLR2(imagemInserida.NomeArquivo, settings.Value.URLApiDev),
+                    ImagemPrincipal = imagemInserida.ImagemPrincipal,
                 };
             }
             catch
             {
                 await unitOfWork.RollbackTransactionAsync();
-                //ArquivoImagem.DeletaImagem(nomeArquivo);
+                await _r2StorageService.DeleteAsync(nomeArquivo.Key);
                 throw;
             }
 
@@ -92,7 +104,8 @@ namespace Galeria.Application.Services
                         GaleriaId = galeriaId,
                         GaleriaSecaoId = secao.Id,
                         NomeArquivo = imagem.NomeArquivo,
-                        Url = ArquivoImagem.FormataURL(imagem.NomeArquivo, httpContextAccessor),
+                        Url = ArquivoImagem.FormataURLR2(imagem.NomeArquivo, settings.Value.URLApiDev),
+                        ImagemPrincipal = imagem.ImagemPrincipal,
                     })
                     .ToList(),
             }).ToList();
@@ -121,15 +134,43 @@ namespace Galeria.Application.Services
                 throw;
             }
 
-            ArquivoImagem.DeletaImagem(imagem.NomeArquivo);
+            await _r2StorageService.DeleteAsync(imagem.NomeArquivo);
 
+            return MapResponse(imagem, galeriaId);
+        }
+
+        public async Task<GaleriaImagemResponse> ImagemPrincipal(int idImagem)
+        {
+            var imagem = await galeriaImagemRepository.ObterImagemPorId(idImagem);
+
+            if (imagem == null)
+                throw new ServicesException("Imagem não encontrada");
+
+            var imagensDaSecao = await galeriaImagemRepository.ListarPorSecao(imagem.GaleriaSecaoId);
+            foreach (var imagemDaSecao in imagensDaSecao.Where(x => x.Id != imagem.Id && x.ImagemPrincipal == true))
+            {
+                imagemDaSecao.RemoverPrincipal();
+                await galeriaImagemRepository.EditarGaleriaImagem(imagemDaSecao);
+            }
+
+            imagem.AtualizarPrincipal(imagem.Id);
+
+            var imagemEntity = await galeriaImagemRepository.EditarGaleriaImagem(imagem);
+
+            return MapResponse(imagemEntity);
+        }
+
+        public GaleriaImagemResponse MapResponse(GaleriaImagem imagem, int? galeriaId = null)
+        {
             return new GaleriaImagemResponse
             {
                 Id = imagem.Id,
                 Guid = imagem.Guid,
-                GaleriaId = galeriaId,
                 GaleriaSecaoId = imagem.GaleriaSecaoId,
                 NomeArquivo = imagem.NomeArquivo,
+                GaleriaId = galeriaId,
+                ImagemPrincipal = imagem.ImagemPrincipal,
+                Url = ArquivoImagem.FormataURLR2(imagem.NomeArquivo, settings.Value.URLApiDev),
             };
         }
     }

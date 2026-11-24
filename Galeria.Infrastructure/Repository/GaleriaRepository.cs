@@ -19,5 +19,7 @@ namespace Galeria.Infrastructure.Repository
 
         public Task<Domain.Models.Galeria> ObterGaleriaPorId(int id, Func<IQueryable<Domain.Models.Galeria>, IIncludableQueryable<Domain.Models.Galeria, object>> include = null) =>
             _repositoryBase.ObterPorId(id, include);
+
+        public Task<Domain.Models.Galeria> EditarGaleria(Domain.Models.Galeria model) => _repositoryBase.Editar(model);
     }
 }

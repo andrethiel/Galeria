@@ -2,15 +2,14 @@ import { ClienteResponse } from './response/ClienteResponse';
 import { GaleriaSecaoResponse } from './response/GaleriaSecaoResponse';
 
 export interface GaleriaResponse {
-  id?: number;
+  id: number;
   guid: string;
+  status: number;
   clienteId?: number;
-  slug?: string | null;
-  status?: number;
-  senhaHash?: string | null;
-  token?: string | null;
-  dataPublicacao?: string | null;
-  dataExpiracao?: string | null;
+  slug: string | null;
+  dataPublicacao: Date | null;
+  dataExpiracao: Date | null;
+  imagemPrincipal?: string | null;
   nome: string;
   image: string;
   secoes?: GaleriaSecaoResponse[];

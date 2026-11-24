@@ -8,16 +8,31 @@ namespace Galeria.Domain.Models
     {
         public int GaleriaSecaoId { get; set; }
         public string NomeArquivo { get; set; }
+        public bool? ImagemPrincipal { get; set; }
+        public string NomeOriginal { get; set; }
 
         private GaleriaImagem() { }
 
-        public static GaleriaImagem Criar(int galeriaSecaoId, string nomeArquivo)
+        public static GaleriaImagem Criar(int galeriaSecaoId, string nomeArquivo, string nomeOriginal, bool? imagemPrincipal)
         {
             return new GaleriaImagem
             {
                 GaleriaSecaoId = galeriaSecaoId,
-                NomeArquivo = nomeArquivo
+                NomeArquivo = nomeArquivo,
+                NomeOriginal = nomeOriginal,
+                ImagemPrincipal = imagemPrincipal
             };
+        }
+
+        public void AtualizarPrincipal(int id)
+        {
+            Id = id;
+            ImagemPrincipal = true;
+        }
+
+        public void RemoverPrincipal()
+        {
+            ImagemPrincipal = null;
         }
     }
 }

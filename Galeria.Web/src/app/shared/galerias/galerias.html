@@ -11,6 +11,16 @@
       2 imagens
     </span>
 
+    @if (galerias.status === 2) {
+      <span
+        class="absolute left-3 top-2 grid size-8 place-items-center rounded-full bg-white/95 text-green-600 shadow-sm"
+        title="Galeria publicada"
+        aria-label="Galeria publicada"
+      >
+        <app-icons name="badge-check" class="size-5" />
+      </span>
+    }
+
     <div
       class="pointer-events-none absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100"
     >

@@ -18,6 +18,14 @@ namespace Galeria.Api.Controllers
         }
 
         [HttpGet]
+        [Route("GaleriaImagem/Principal")]
+        public async Task<IActionResult> Principal(int idImagem)
+        {
+            var imagem = await imagemServices.ImagemPrincipal(idImagem);
+            return Ok(BaseResponseFactory.Success(imagem));
+        }
+
+        [HttpGet]
         [Route("GaleriaImagem/Galeria/{galeriaId:int}/Secao/{galeriaSecaoId:int}")]
         public async Task<IActionResult> ListarPorSecao(int galeriaId, int galeriaSecaoId)
         {

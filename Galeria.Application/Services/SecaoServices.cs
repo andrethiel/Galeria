@@ -16,7 +16,8 @@ namespace Galeria.Application.Services
     public class SecaoServices(
         IGaleriaSecaoRepository _galeriaSecaoRepository,
         IGaleriaImagemRepository _galeriaImagemRepository,
-        IUnitOfWork _unitOfWork) : ISecaoServices
+        IUnitOfWork _unitOfWork, 
+        IR2StorageService r2StorageService) : ISecaoServices
     {
         public async Task<GaleriaSecaoResponse> CadastrarSecao(SecaoCreateRequest model)
         {
@@ -67,7 +68,7 @@ namespace Galeria.Application.Services
             }
 
             foreach (var imagem in secao.GaleriaImagem)
-                ArquivoImagem.DeletaImagem(imagem.NomeArquivo);
+                await r2StorageService.DeleteAsync(imagem.NomeArquivo);
 
             return MapResponse(secao);
         }

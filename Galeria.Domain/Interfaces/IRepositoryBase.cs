@@ -17,7 +17,6 @@ namespace Galeria.Domain.Interfaces
         Task<List<TEntity>> ListarPorId(int id, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> include = null);
         Task<TEntity?> ObterPorId(int id, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> include = null);
         Task<TEntity?> ObterPorGuid(Guid Guid, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> include = null);
-        //Task<TEntity?> ObterPorTenant(int tenantId);
         Task<List<TEntity>> Filtrar(Expression<Func<TEntity, bool>> filter = null, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> include = null);
     }
 }

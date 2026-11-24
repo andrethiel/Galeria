@@ -32,7 +32,7 @@ namespace Galeria.Domain.Models
         {
             Guid = Guid.NewGuid();
             DataCriacao = DateTime.Now;
-            AtualizarDados(clienteId, slug, status, senhaHash, token, dataPublicacao, dataExpiracao);
+            AtualizarDados(clienteId, slug, status, dataPublicacao, dataExpiracao);
         }
 
         public static Galeria Criar(
@@ -51,29 +51,29 @@ namespace Galeria.Domain.Models
             int clienteId,
             string slug,
             StatusGaleria status,
-            string senhaHash,
-            string token,
             DateTime? dataPublicacao,
             DateTime? dataExpiracao)
         {
-            AtualizarDados(clienteId, slug, status, senhaHash, token, dataPublicacao, dataExpiracao);
+            AtualizarDados(clienteId, slug, status, dataPublicacao, dataExpiracao);
             DataAtualizacao = DateTime.Now;
+        }
+
+        public void PublicarGaleria(int id)
+        {
+            Id = id;
+            Status = StatusGaleria.Publicada;
         }
 
         private void AtualizarDados(
             int clienteId,
             string slug,
             StatusGaleria status,
-            string senhaHash,
-            string token,
             DateTime? dataPublicacao,
             DateTime? dataExpiracao)
         {
             ClienteId = clienteId;
             Slug = slug?.Trim() ?? string.Empty;
-            Status = status;
-            SenhaHash = senhaHash?.Trim() ?? string.Empty;
-            Token = token?.Trim() ?? string.Empty;
+            Status = status;            
             DataPublicacao = dataPublicacao;
             DataExpiracao = dataExpiracao;
         }

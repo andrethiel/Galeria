@@ -5,6 +5,7 @@ import { HttpService } from './http.service';
 import { ClienteResponse } from '../models/response/ClienteResponse';
 import { ClienteGaleriaResponse } from '../models/response/ClienteGaleriaResponse';
 import { ClienteEditRequest } from '../models/edit/ClienteEditRequest';
+import { SelectOption } from '../models/response/SelectOption';
 
 @Injectable({ providedIn: 'root' })
 export class ClienteService {
@@ -24,5 +25,9 @@ export class ClienteService {
 
   editarCliente(cliente: ClienteEditRequest) {
     return this.http.post<ClienteResponse>(`${this.api}/EditarCliente`, cliente);
+  }
+
+  obterTipoEnsaio() {
+    return this.http.get<SelectOption[]>(`${this.api}/ObterTipoEnsaios`);
   }
 }

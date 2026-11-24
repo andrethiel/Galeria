@@ -2,11 +2,15 @@
 using Amazon.S3.Model;
 using Galeria.Application.DTOs;
 using Galeria.Application.DTOs.Response;
+using Galeria.Application.Exceptions;
 using Galeria.Application.Interfaces;
+using Galeria.Domain.Interfaces;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
+using System.Net.Mime;
 using System.Text;
 
 namespace Galeria.Application.Services
@@ -23,6 +27,18 @@ namespace Galeria.Application.Services
             _s3Client = s3Client;
             _settings = settings.Value;
         }
+
+        public async Task DeleteAsync(string nomeArquivo)
+        {
+            var request = new DeleteObjectRequest
+            {
+                BucketName = _settings.BucketName,
+                Key = nomeArquivo
+            };
+
+            await _s3Client.DeleteObjectAsync(request);
+        }
+
         public string GerarUrlUpload(string key, string contentType)
         {
             var request = new GetPreSignedUrlRequest
@@ -83,7 +99,8 @@ namespace Galeria.Application.Services
                 Key = key,
                 NomeArquivo = nomeArquivo,
                 Tamanho = arquivo.Length,
-                ContentType = contentType
+                ContentType = contentType,
+                NomeOriginal = arquivo.FileName
             };
         }
     }

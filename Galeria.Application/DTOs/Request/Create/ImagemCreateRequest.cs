@@ -9,7 +9,7 @@ namespace Galeria.Application.DTOs.Request.Create
     {
         public int GaleriaId { get; set; }
         public int GaleriaSecaoId { get; set; }
-        public bool ImagemPrincipal { get; set; }
+        public bool? ImagemPrincipal { get; set; }
         public IFormFile Arquivo { get; set; }
     }
 }

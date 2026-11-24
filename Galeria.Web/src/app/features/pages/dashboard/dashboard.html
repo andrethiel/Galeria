@@ -102,32 +102,32 @@
     <div class="mx-auto grid w-full max-w-xl gap-5">
       <label class="grid gap-2 text-sm text-neutral-700">
         <span>Nome</span>
-        <app-input [control]="clineteForm.controls.nome" Icon="user"></app-input>
+        <app-input [control]="clienteForm.controls.nome" Icon="user"></app-input>
         <div
           *ngIf="
-            clineteForm.controls.nome.invalid &&
-            (clineteForm.controls.nome.dirty || clineteForm.controls.nome.touched)
+            clienteForm.controls.nome.invalid &&
+            (clienteForm.controls.nome.dirty || clienteForm.controls.nome.touched)
           "
           class="text-red-500 text-sm mt-1"
         >
-          <small *ngIf="clineteForm.controls.nome.errors?.['required']">Nome é obrigatório</small>
+          <small *ngIf="clienteForm.controls.nome.errors?.['required']">Nome é obrigatório</small>
         </div>
       </label>
 
       <label class="grid gap-2 text-sm text-neutral-700">
         <span>E-mail</span>
-        <app-input [control]="clineteForm.controls.email" type="email" Icon="at-sign"></app-input>
+        <app-input [control]="clienteForm.controls.email" type="email" Icon="at-sign"></app-input>
         <div
           *ngIf="
-            clineteForm.controls.email.invalid &&
-            (clineteForm.controls.email.dirty || clineteForm.controls.email.touched)
+            clienteForm.controls.email.invalid &&
+            (clienteForm.controls.email.dirty || clienteForm.controls.email.touched)
           "
           class="text-red-500 text-sm mt-1"
         >
-          <small *ngIf="clineteForm.controls.email.errors?.['required']"
+          <small *ngIf="clienteForm.controls.email.errors?.['required']"
             >E-mail é obrigatório</small
           >
-          <small *ngIf="clineteForm.controls.email.errors?.['email']"
+          <small *ngIf="clienteForm.controls.email.errors?.['email']"
             >Informe um e-mail válido</small
           >
         </div>
@@ -136,19 +136,38 @@
       <label class="grid gap-2 text-sm text-neutral-700">
         <span>Telefone</span>
         <app-input
-          [control]="clineteForm.controls.telefone"
+          [control]="clienteForm.controls.telefone"
           [Telefone]="true"
           Icon="phone"
         ></app-input>
         <div
           *ngIf="
-            clineteForm.controls.telefone.invalid &&
-            (clineteForm.controls.telefone.dirty || clineteForm.controls.telefone.touched)
+            clienteForm.controls.telefone.invalid &&
+            (clienteForm.controls.telefone.dirty || clienteForm.controls.telefone.touched)
           "
           class="mt-1 text-sm text-red-500"
         >
-          <small *ngIf="clineteForm.controls.telefone.errors?.['required']"
+          <small *ngIf="clienteForm.controls.telefone.errors?.['required']"
             >Telefone é obrigatório</small
+          >
+        </div>
+      </label>
+      <label class="grid gap-2 text-sm text-neutral-700">
+        <span>Tipo de ensaio</span>
+        <app-select
+          Icon="image"
+          [Options]="tipoEnsaio"
+          [control]="clienteForm.controls.tipoEnsaio"
+        ></app-select>
+        <div
+          *ngIf="
+            clienteForm.controls.tipoEnsaio.invalid &&
+            (clienteForm.controls.tipoEnsaio.dirty || clienteForm.controls.tipoEnsaio.touched)
+          "
+          class="mt-1 text-sm text-red-500"
+        >
+          <small *ngIf="clienteForm.controls.tipoEnsaio.errors?.['required']"
+            >Tipo do ensaio é obrigatório</small
           >
         </div>
       </label>
@@ -164,7 +183,7 @@
       </button>
       <button
         type="submit"
-        [disabled]="clineteForm.invalid"
+        [disabled]="clienteForm.invalid"
         class="rounded bg-primary px-5 py-2 text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--hover-primary)] disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-400"
       >
         Continuar

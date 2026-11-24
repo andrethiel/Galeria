@@ -17,10 +17,20 @@ import { GaleriaState } from '../../../core/state/galeria.state';
 import { GaleriaSecaoState } from '../../../core/state/galeriaSecao.state';
 import { SessionStorageService } from '../../../core/services/session-storage.service';
 import { GaleriaService } from '../../../core/services/galeria.service';
+import { SelectOption } from '../../../core/models/response/SelectOption';
+import { SelectComponent } from '../../../shared/select/select';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [FormsModule, IconsComponent, Galerias, ModalComponent, InputComponent, CommonModule],
+  imports: [
+    FormsModule,
+    IconsComponent,
+    Galerias,
+    ModalComponent,
+    InputComponent,
+    CommonModule,
+    SelectComponent,
+  ],
   templateUrl: './dashboard.html',
 })
 export class Dashboard implements OnInit {
@@ -44,13 +54,15 @@ export class Dashboard implements OnInit {
   clienteState = inject(ClienteState);
   galeriaState = inject(GaleriaState);
   galeriaSecaoState = inject(GaleriaSecaoState);
-  clineteForm!: FormGroup<FormModel<ClienteCreateRequest>>;
+  clienteForm!: FormGroup<FormModel<ClienteCreateRequest>>;
+  tipoEnsaio: SelectOption[] = [];
 
   ngOnInit(): void {
-    this.clineteForm = this.fb.group<FormModel<ClienteCreateRequest>>({
+    this.clienteForm = this.fb.group<FormModel<ClienteCreateRequest>>({
       nome: this.fb.control<string | null>(null, Validators.required),
       email: this.fb.control<string | null>(null, [Validators.required, Validators.email]),
       telefone: this.fb.control<string | null>(null),
+      tipoEnsaio: this.fb.control<number | null>(null, Validators.required),
     });
 
     this.carregarGalerias();
@@ -66,11 +78,18 @@ export class Dashboard implements OnInit {
             ...galerias.map((galeria) => ({
               ...galeria,
               nome: galeria.slug || `Galeria ${galeria.id}`,
-              image: galeria.image || '',
+               image: galeria.imagemPrincipal || '',
             })),
           );
         });
       },
+      error: (error) => this.responseHandler.handleErro(error),
+    });
+  }
+
+  carregarEnsaios() {
+    this.clientService.obterTipoEnsaio().subscribe({
+      next: (response) => (this.tipoEnsaio = response.success ? response.data : []),
       error: (error) => this.responseHandler.handleErro(error),
     });
   }
@@ -105,6 +124,7 @@ export class Dashboard implements OnInit {
   }
 
   openClientModal(): void {
+    this.carregarEnsaios();
     this.clientModalOpen = true;
   }
 
@@ -113,12 +133,12 @@ export class Dashboard implements OnInit {
   }
 
   salvar(): void {
-    if (this.clineteForm.invalid) {
-      this.clineteForm.markAllAsTouched();
+    if (this.clienteForm.invalid) {
+      this.clienteForm.markAllAsTouched();
       this.logErrosFormulario();
       return;
     }
-    const form = this.clineteForm.getRawValue();
+    const form = this.clienteForm.getRawValue();
     this.clientModalOpen = false;
     this.clientService.inserirClienteComGaleria(form).subscribe({
       next: (response) => {
@@ -139,7 +159,7 @@ export class Dashboard implements OnInit {
   }
 
   private logErrosFormulario() {
-    Object.entries(this.clineteForm.controls).forEach(([nome, control]) => {
+    Object.entries(this.clienteForm.controls).forEach(([nome, control]) => {
       if (control.invalid) {
         console.log(nome, control.errors);
       }

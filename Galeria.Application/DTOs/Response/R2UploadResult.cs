@@ -8,6 +8,7 @@ namespace Galeria.Application.DTOs.Response
     {
         public string Key { get; set; }
         public string NomeArquivo { get; set; }
+        public string NomeOriginal { get; set; }
         public long Tamanho { get; set; }
         public string ContentType { get; set; }
     }

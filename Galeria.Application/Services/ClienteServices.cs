@@ -147,6 +147,15 @@ namespace Galeria.Application.Services
             };
         }
 
-        
+        public List<SelectItemtResponse<int>> ObterTipoEnsaios()
+        {
+            var lista = Enum.GetValues<TipoEnsaio>().Select(x => new SelectItemtResponse<int>
+            {
+                Label = EnumDescription.GetDescription(x),
+                Value = (int)x
+            }).ToList();
+
+            return lista;
+        }
     }
 }

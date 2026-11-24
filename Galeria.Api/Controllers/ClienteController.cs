@@ -33,5 +33,13 @@ namespace Galeria.Api.Controllers
             var clienteResponse = await _clienteService.EditarCliente(cliente);
             return Ok(BaseResponseFactory.Success(clienteResponse));
         }
+
+        [HttpGet]
+        [Route("/ObterTipoEnsaios")]
+        public async Task<IActionResult> ObterTipoEnsaios()
+        {
+            var clienteResponse = _clienteService.ObterTipoEnsaios();
+            return Ok(BaseResponseFactory.Success(clienteResponse));
+        }
     }
 }

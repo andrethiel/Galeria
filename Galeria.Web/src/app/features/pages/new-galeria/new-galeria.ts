@@ -1,6 +1,6 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AlertService } from '../../../core/services/alert.service';
 import { ClienteCreateRequest } from '../../../core/models/create/ClienteCreateRequest';
 import { ClienteState } from '../../../core/state/cliente.state';
@@ -19,11 +19,24 @@ import { ImagemService } from '../../../core/services/imagem.service';
 import { ResponseHandlerService } from '../../../core/services/response-handler.service';
 import { SecaoService } from '../../../core/services/secao.service';
 import { GaleriaService } from '../../../core/services/galeria.service';
-import { firstValueFrom } from 'rxjs';
+import { GaleriaImagemResponse } from '../../../core/models/response/GaleriaImagemResponse';
+import {
+  catchError,
+  concatMap,
+  EMPTY,
+  finalize,
+  filter,
+  firstValueFrom,
+  from,
+  map,
+  tap,
+} from 'rxjs';
 import { ClienteEditRequest } from '../../../core/models/edit/ClienteEditRequest';
 import { ClienteService } from '../../../core/services/cliente.service';
-import { Link } from '../../../shared/link/link';
 import { ButtonComponent } from '../../../shared/button/button';
+import { HttpEventType, HttpResponse } from '@angular/common/http';
+import { GaleriaEditRequest } from '../../../core/models/edit/GaleriaEditRequest';
+import { GaleriaImagemState } from '../../../core/state/imagem.state';
 
 type GallerySection = {
   id: number;
@@ -31,6 +44,7 @@ type GallerySection = {
   files: File[];
   previewUrls: string[];
   imageIds: number[];
+  primaryImageId: number | null;
 };
 
 @Component({
@@ -47,12 +61,13 @@ type GallerySection = {
   templateUrl: './new-galeria.html',
 })
 export class NewGaleria implements OnInit {
-  formGaleria!: FormGroup<FormModel<GaleriaCreateRequest>>;
+  formGaleria!: FormGroup<FormModel<GaleriaEditRequest>>;
   formCliente!: FormGroup<FormModel<ClienteEditRequest>>;
   dragActive = false;
   selectedFiles: File[] = [];
   previewUrls: string[] = [];
   imageIds: number[] = [];
+  primaryImageId: number | null = null;
   viewMode: 'grid' | 'list' = 'grid';
   previewIndex: number | null = null;
   selectedIndexes = new Set<number>();
@@ -67,6 +82,11 @@ export class NewGaleria implements OnInit {
   sectionModalMode: 'add' | 'edit' = 'add';
   sectionName = '';
   editingSectionIndex: number | null = null;
+  uploadingImages = false;
+  uploadedImages = 0;
+  totalImages = 0;
+  uploadProgress = 0;
+  currentImageProgress = 0;
 
   constructor(
     route: ActivatedRoute,
@@ -78,10 +98,14 @@ export class NewGaleria implements OnInit {
     private readonly imagemService: ImagemService,
     private readonly secaoService: SecaoService,
     private readonly galeriaService: GaleriaService,
-    private fb: FormBuilder,
+    private readonly fb: FormBuilder,
     private readonly responseHandler: ResponseHandlerService,
     private readonly galeriaState: GaleriaState,
+    private readonly changeDetector: ChangeDetectorRef,
+    private readonly router: Router,
+    private readonly imagemStates: GaleriaImagemState,
   ) {
+    this.inicializarFormularios();
     this.restoreSessionData();
     this.loadClient();
 
@@ -98,6 +122,12 @@ export class NewGaleria implements OnInit {
   }
 
   ngOnInit(): void {
+    this.formGaleria.controls.dataPublicacao.valueChanges.subscribe((dataPublicacao) => {
+      this.setExpirationDate(dataPublicacao);
+    });
+  }
+
+  private inicializarFormularios(): void {
     const cliente = this.clienteState.obter();
     this.formCliente = this.fb.group<FormModel<ClienteEditRequest>>({
       id: this.fb.control<number>(cliente?.id ?? 0, { nonNullable: true }),
@@ -106,15 +136,11 @@ export class NewGaleria implements OnInit {
       telefone: this.fb.control<string | null>(cliente?.telefone ?? null),
     });
 
-    this.formGaleria = this.fb.group<FormModel<GaleriaCreateRequest>>({
-      guid: this.fb.control<string | null>(this.galeriaState.obter()[0]?.guid ?? null),
+    this.formGaleria = this.fb.group<FormModel<GaleriaEditRequest>>({
+      id: this.fb.control<number | null>(this.galeriaState.obter()[0]?.id ?? null),
       dataPublicacao: this.fb.control<Date | null>(null, Validators.required),
       dataExpiracao: this.fb.control<Date | null>(null, Validators.required),
       slug: this.fb.control<string | null>(null, Validators.required),
-    });
-
-    this.formGaleria.controls.dataPublicacao.valueChanges.subscribe((dataPublicacao) => {
-      this.setExpirationDate(dataPublicacao);
     });
   }
 
@@ -141,6 +167,28 @@ export class NewGaleria implements OnInit {
         this.responseHandler.handle(response, (data) => {
           this.clienteState.atualizar(data);
           this.alert.sucesso('Cliente atualizado com sucesso.');
+        });
+      },
+      error: (error) => this.responseHandler.handleErro(error),
+    });
+  }
+
+  imagemPrincipal(): void {
+    if (this.selectedIndexes.size !== 1) {
+      this.alert.erro('Selecione apenas uma imagem para defini-la como principal.');
+      return;
+    }
+
+    const [index] = this.selectedIndexes;
+    const idImagem = this.imageIds[index];
+    if (!idImagem) return;
+
+    this.imagemService.imagemPrincipal(idImagem).subscribe({
+      next: (response) => {
+        this.responseHandler.handle(response, (data) => {
+          this.primaryImageId = data.id;
+          this.imagemStates.definirPrincipal(data.id);
+          this.syncActiveSection();
         });
       },
       error: (error) => this.responseHandler.handleErro(error),
@@ -248,7 +296,14 @@ export class NewGaleria implements OnInit {
           this.responseHandler.handle(response, (data) => {
             this.sections = [
               ...this.sections,
-              { id: data.id, name: data.nome, files: [], previewUrls: [], imageIds: [] },
+              {
+                id: data.id,
+                name: data.nome,
+                files: [],
+                previewUrls: [],
+                imageIds: [],
+                primaryImageId: null,
+              },
             ];
             this.galeriaSecaoState.atualizar(data);
             this.activeSection = this.sections.length - 1;
@@ -259,6 +314,40 @@ export class NewGaleria implements OnInit {
         error: (error) => this.responseHandler.handleErro(error),
       });
     }
+  }
+
+  openModalConfig() {
+    var galeria = this.galeriaState.obter()[0];
+    this.formGaleria.controls.slug.setValue(galeria.slug);
+    this.formGaleria.controls.dataPublicacao.setValue(galeria.dataPublicacao);
+    this.formGaleria.controls.dataExpiracao.setValue(galeria.dataExpiracao);
+    this.settingsOpen = true;
+  }
+
+  publicarGaleria() {
+    const galeria = this.galeriaState.obter()[0];
+    const existeImagemPrincipal = this.imagemStates
+      .obter()
+      .some((imagem) => imagem.imagemPrincipal === true);
+
+    if (!existeImagemPrincipal) {
+      this.alert.erro('Defina uma imagem principal antes de publicar a galeria.');
+      return;
+    }
+
+    if (galeria.slug == null && galeria.dataPublicacao == null && galeria.dataExpiracao == null) {
+      this.settingsOpen = true;
+    }
+
+    this.galeriaService.publicarGaleria(galeria.id).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.alert.sucesso('Galeria publicada com sucesso. Você será redirecionado ao inico');
+          this.router.navigate(['/']);
+        }
+      },
+      error: (error) => this.responseHandler.erro(error),
+    });
   }
 
   closeSectionModal(): void {
@@ -312,6 +401,13 @@ export class NewGaleria implements OnInit {
     return this.selectedIndexes.has(index);
   }
 
+  isSelectedImagePrincipal(): boolean {
+    if (this.selectedIndexes.size !== 1) return false;
+
+    const [index] = this.selectedIndexes;
+    return this.imageIds[index] === this.primaryImageId;
+  }
+
   deleteSelected(): void {
     this.alert
       .confirmacao(
@@ -346,6 +442,7 @@ export class NewGaleria implements OnInit {
         this.selectedFiles.splice(index, 1);
         this.previewUrls.splice(index, 1);
         this.imageIds.splice(index, 1);
+        this.imagemStates.excluir(imageId);
       } catch {
         this.alert.erro('Não foi possível excluir a imagem.');
       }
@@ -430,32 +527,79 @@ export class NewGaleria implements OnInit {
     }
 
     let configuracoesAbertas = false;
-    for (const arquivo of files) {
-      this.imagemService.enviar(galeriaId, galeriaSecaoId, arquivo).subscribe({
-        next: (response) => {
-          if (!response.success) {
-            this.alert.erro(response.message || 'Não foi possível enviar a imagem.');
-            return;
-          }
+    this.uploadingImages = files.length > 0;
+    this.uploadedImages = 0;
+    this.totalImages = files.length;
+    this.uploadProgress = 0;
+    this.currentImageProgress = 0;
 
-          this.adicionarImagemAprovada(arquivo, response.data.id);
+    from(files)
+      .pipe(
+        concatMap((arquivo) =>
+          this.imagemService.enviarImagem(galeriaId, galeriaSecaoId, arquivo).pipe(
+            tap((event) => {
+              if (event.type === HttpEventType.UploadProgress) {
+                const total = event.total ?? arquivo.size;
+                this.currentImageProgress = Math.round((event.loaded / total) * 100);
+                this.uploadProgress = Math.round(
+                  ((this.uploadedImages + this.currentImageProgress / 100) / this.totalImages) *
+                    100,
+                );
+                this.changeDetector.markForCheck();
+              }
+            }),
+            filter(
+              (
+                event,
+              ): event is HttpResponse<{
+                success: boolean;
+                message: string;
+                data: GaleriaImagemResponse;
+              }> => event.type === HttpEventType.Response,
+            ),
+            map((event) => ({ arquivo, response: event.body! })),
+            catchError((error) => {
+              this.alert.erro(error?.error?.message ?? 'Não foi possível enviar a imagem.');
+              return EMPTY;
+            }),
+            finalize(() => {
+              this.uploadedImages++;
+              this.currentImageProgress = 0;
+              this.uploadProgress = Math.round((this.uploadedImages / this.totalImages) * 100);
+              this.changeDetector.markForCheck();
+            }),
+          ),
+        ),
+        finalize(() => {
+          this.uploadingImages = false;
+        }),
+      )
+      .subscribe(({ arquivo, response }) => {
+        if (!response.success) {
+          this.alert.erro(response.message || 'Não foi possível enviar a imagem.');
+          return;
+        }
 
-          if (abrirConfiguracoes && !configuracoesAbertas) {
-            configuracoesAbertas = true;
-            this.settingsOpen = true;
-          }
-        },
-        error: (error) => {
-          this.alert.erro(error?.error?.message ?? 'Não foi possível enviar a imagem.');
-        },
+         this.adicionarImagemAprovada(
+           arquivo,
+           response.data.id,
+           response.data.imagemPrincipal === true,
+         );
+        this.imagemStates.atualizar(response.data);
+        this.changeDetector.markForCheck();
+
+        if (abrirConfiguracoes && !configuracoesAbertas) {
+          configuracoesAbertas = true;
+          this.settingsOpen = true;
+        }
       });
-    }
   }
 
-  private adicionarImagemAprovada(arquivo: File, imageId: number): void {
+  private adicionarImagemAprovada(arquivo: File, imageId: number, isPrimary = false): void {
     this.selectedFiles = [...this.selectedFiles, arquivo];
     this.previewUrls = [...this.previewUrls, URL.createObjectURL(arquivo)];
     this.imageIds = [...this.imageIds, imageId];
+    if (isPrimary) this.primaryImageId = imageId;
     this.selectedIndexes.clear();
 
     if (this.sections.length === 0) {
@@ -466,6 +610,7 @@ export class NewGaleria implements OnInit {
           files: [],
           previewUrls: [],
           imageIds: [],
+          primaryImageId: null,
         },
       ];
       this.activeSection = 0;
@@ -484,7 +629,21 @@ export class NewGaleria implements OnInit {
       this.logErrosFormulario();
       return;
     }
+
     const form = this.formGaleria.getRawValue();
+    form.id = this.galeriaState.obter()[0].id;
+
+    this.galeriaService.galeriaEditar(form).subscribe({
+      next: (response) => {
+        this.responseHandler.handle(response, (dados) => {
+          if (response.success) {
+            this.galeriaState.atualizar(response.data);
+            this.alert.sucesso('Galeria atualizada com sucesso');
+          }
+        });
+      },
+      error: (error) => this.responseHandler.handleErro(error),
+    });
   }
 
   openClientModal(): void {
@@ -530,6 +689,7 @@ export class NewGaleria implements OnInit {
       files: [],
       previewUrls: [],
       imageIds: [],
+      primaryImageId: null,
     }));
   }
 
@@ -541,6 +701,8 @@ export class NewGaleria implements OnInit {
     this.imagemService.listarPorSecao(galeriaId, galeriaSecaoId).subscribe({
       next: (response) => {
         this.responseHandler.handle(response, (secoes) => {
+          this.imagemStates.criar(secoes.flatMap((secao) => secao.imagens ?? []));
+
           for (const secao of secoes) {
             const sectionIndex = this.sections.findIndex((section) => section.id === secao.id);
             if (sectionIndex === -1) continue;
@@ -554,6 +716,7 @@ export class NewGaleria implements OnInit {
                 (imagem) => new File([], imagem.nomeArquivo, { type: 'image/webp' }),
               ),
               imageIds: imagens.map((imagem) => imagem.id),
+              primaryImageId: imagens.find((imagem) => imagem.imagemPrincipal === true)?.id ?? null,
             };
           }
 
@@ -614,6 +777,7 @@ export class NewGaleria implements OnInit {
     this.sections[this.activeSection].files = [...this.selectedFiles];
     this.sections[this.activeSection].previewUrls = [...this.previewUrls];
     this.sections[this.activeSection].imageIds = [...this.imageIds];
+    this.sections[this.activeSection].primaryImageId = this.primaryImageId;
   }
 
   private loadActiveSection(): void {
@@ -621,6 +785,7 @@ export class NewGaleria implements OnInit {
     this.selectedFiles = section ? [...section.files] : [];
     this.previewUrls = section ? [...section.previewUrls] : [];
     this.imageIds = section ? [...section.imageIds] : [];
+    this.primaryImageId = section?.primaryImageId ?? null;
     this.selectedIndexes.clear();
     this.previewIndex = null;
   }

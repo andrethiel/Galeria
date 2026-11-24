@@ -4,5 +4,6 @@ export interface GaleriaImagemResponse {
   galeriaId: number;
   galeriaSecaoId: number;
   nomeArquivo: string;
+  imagemPrincipal?: boolean | null;
   url: string;
 }
