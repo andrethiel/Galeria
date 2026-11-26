@@ -88,6 +88,10 @@ export class NewGaleria implements OnInit {
   uploadProgress = 0;
   currentImageProgress = 0;
 
+  get galeriaPublicada(): boolean {
+    return this.galeriaState.obter()[0]?.status === 2;
+  }
+
   constructor(
     route: ActivatedRoute,
     private readonly alert: AlertService,
@@ -173,7 +177,7 @@ export class NewGaleria implements OnInit {
     });
   }
 
-  imagemPrincipal(): void {
+  async imagemPrincipal(): Promise<void> {
     if (this.selectedIndexes.size !== 1) {
       this.alert.erro('Selecione apenas uma imagem para defini-la como principal.');
       return;
@@ -182,6 +186,23 @@ export class NewGaleria implements OnInit {
     const [index] = this.selectedIndexes;
     const idImagem = this.imageIds[index];
     if (!idImagem) return;
+
+    const urlImagem = this.previewUrls[index];
+    if (!urlImagem) {
+      this.alert.erro('Não foi possível identificar a orientação da imagem.');
+      return;
+    }
+
+    try {
+      const dimensoes = await this.obterDimensoesImagem(urlImagem);
+      if (dimensoes.largura <= dimensoes.altura) {
+        this.alert.erro('A imagem principal precisa estar na horizontal.');
+        return;
+      }
+    } catch {
+      this.alert.erro('Não foi possível validar a orientação da imagem.');
+      return;
+    }
 
     this.imagemService.imagemPrincipal(idImagem).subscribe({
       next: (response) => {
@@ -192,6 +213,15 @@ export class NewGaleria implements OnInit {
         });
       },
       error: (error) => this.responseHandler.handleErro(error),
+    });
+  }
+
+  private obterDimensoesImagem(url: string): Promise<{ largura: number; altura: number }> {
+    return new Promise((resolve, reject) => {
+      const imagem = new Image();
+      imagem.onload = () => resolve({ largura: imagem.naturalWidth, altura: imagem.naturalHeight });
+      imagem.onerror = () => reject(new Error('Não foi possível carregar a imagem.'));
+      imagem.src = url;
     });
   }
 
@@ -342,12 +372,20 @@ export class NewGaleria implements OnInit {
     this.galeriaService.publicarGaleria(galeria.id).subscribe({
       next: (response) => {
         if (response.success) {
+          this.galeriaState.atualizar({ ...galeria, status: 2 });
           this.alert.sucesso('Galeria publicada com sucesso. Você será redirecionado ao inico');
           this.router.navigate(['/']);
         }
       },
       error: (error) => this.responseHandler.erro(error),
     });
+  }
+
+  private marcarGaleriaComoRascunho(): void {
+    const galeria = this.galeriaState.obter()[0];
+    if (!galeria || galeria.status !== 2) return;
+
+    this.galeriaState.atualizar({ ...galeria, status: 1 });
   }
 
   closeSectionModal(): void {
@@ -524,6 +562,10 @@ export class NewGaleria implements OnInit {
     if (!galeriaId || !galeriaSecaoId) {
       this.alert.erro('A galeria e a seção precisam estar disponíveis para receber imagens.');
       return;
+    }
+
+    if (files.length > 0) {
+      this.marcarGaleriaComoRascunho();
     }
 
     let configuracoesAbertas = false;

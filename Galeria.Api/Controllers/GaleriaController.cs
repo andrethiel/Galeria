@@ -27,11 +27,19 @@ namespace Galeria.Api.Controllers
             return Ok(BaseResponseFactory.Success(galeriaResponse));
         }
 
+        [HttpPost]
+        [Route("/FiltrarGaleria")]
+        public async Task<IActionResult> FiltrarGaleria([FromBody] GaleriaRequest galeria)
+        {
+            var galeriaResponse = await _galeriaServices.FiltrarGalerias(galeria);
+            return Ok(BaseResponseFactory.Success(galeriaResponse));
+        }
+
         [HttpGet]
         [Route("Galerias")]
-        public async Task<IActionResult> ListarGalerias()
+        public async Task<IActionResult> ListarGalerias([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
-            var galerias = await _galeriaServices.ListarGalerias();
+            var galerias = await _galeriaServices.ListarGalerias(page, pageSize);
             return Ok(BaseResponseFactory.Success(galerias));
         }
 
@@ -41,6 +49,14 @@ namespace Galeria.Api.Controllers
         {
             var galeria = await _galeriaServices.ObterGaleria(id);
             return Ok(BaseResponseFactory.Success(galeria));
+        }
+
+        [HttpDelete]
+        [Route("Galerias/Excluir/{id:int}")]
+        public async Task<IActionResult> Excluir(int id)
+        {
+            await _galeriaServices.ExcluirGaleria(id);
+            return Ok(BaseResponseFactory.Success());
         }
 
         [HttpGet]

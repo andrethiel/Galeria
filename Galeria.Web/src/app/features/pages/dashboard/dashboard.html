@@ -4,75 +4,47 @@
   <div
     class="mb-6 grid grid-cols-[1fr_auto] items-center gap-4 lg:grid-cols-[1fr_auto_1fr] lg:gap-8"
   >
+    <h1 class="m-0 text-3xl font-light tracking-[-0.04em] sm:text-4xl">Filtros</h1>
+  </div>
+  <div class="grid grid-cols-1 items-end gap-4 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
+    <label class="grid gap-2 text-sm text-neutral-700">
+      <span>Buscar por nome</span>
+      <app-input
+        Icon="search"
+        Placeholder=""
+        [control]="formFiltrar.controls.nomeCliente"
+      ></app-input>
+    </label>
+    <label class="grid gap-2 text-sm text-neutral-700">
+      <span>Buscar por tipo de ensaio</span>
+      <app-select
+        [control]="formFiltrar.controls.tipoEnsaio"
+        Icon="image"
+        [Options]="tipoEnsaio"
+      ></app-select>
+    </label>
+    <label class="grid gap-2 text-sm text-neutral-700">
+      <span>Buscar por data de publicação</span>
+      <app-datetimepicker
+        [control]="formFiltrar.controls.dataPublicacao"
+        Icon="calendar"
+        DateFormat="d/m/Y"
+        [Tempo]="false"
+      ></app-datetimepicker>
+    </label>
+    <label class="flex items-end">
+      <app-button [FullWidth]="false" (click)="filtrarGalerias()">Filtrar</app-button>
+    </label>
+  </div>
+  <div
+    class="mb-6 mt-6 grid grid-cols-[1fr_auto] items-center gap-4 lg:grid-cols-[1fr_auto_1fr] lg:gap-8"
+  >
     <h1 class="m-0 text-3xl font-light tracking-[-0.04em] sm:text-4xl">Galerias</h1>
     <p
       class="col-span-2 m-0 text-left text-base text-slate-700 lg:col-span-1 lg:col-start-2 lg:row-start-1 lg:text-center"
     >
-      Você tem <strong class="font-medium">{{ galleries.length }}</strong> galerias.
+      Você tem <strong class="font-medium">{{ galerias.length }}</strong> galerias.
     </p>
-
-    <div
-      class="relative col-start-2 row-start-1 flex justify-end gap-2 lg:col-start-3"
-      aria-label="Ações da galeria"
-    >
-      @if (searchOpen) {
-        <label class="flex h-9 items-center gap-2 border-b border-neutral-300 text-neutral-600">
-          <app-icons name="search" class="size-5 shrink-0" />
-          <span class="sr-only">Buscar galerias</span>
-          <input
-            type="search"
-            [value]="searchTerm"
-            (input)="searchTerm = $any($event.target).value"
-            placeholder="Buscar"
-            class="w-28 bg-transparent text-sm text-neutral-800 outline-none placeholder:text-neutral-400 sm:w-36"
-          />
-        </label>
-      }
-      <button
-        type="button"
-        aria-label="Pesquisar galerias"
-        [attr.aria-expanded]="searchOpen"
-        (click)="toggleSearch()"
-        class="grid size-9 shrink-0 place-items-center rounded-full text-neutral-700 hover:bg-slate-200"
-      >
-        <app-icons name="search" class="size-5" />
-      </button>
-      <button
-        type="button"
-        aria-label="Filtrar galerias"
-        [attr.aria-expanded]="filterOpen"
-        (click)="toggleFilter()"
-        class="grid size-9 shrink-0 place-items-center rounded-full text-neutral-700 hover:bg-slate-200"
-      >
-        <app-icons name="list-filter" class="size-5" />
-      </button>
-
-      @if (filterOpen) {
-        <div
-          class="absolute right-0 top-11 z-30 w-80 rounded bg-white py-2 shadow-lg ring-1 ring-black/5"
-        >
-          @for (
-            filter of [
-              'Nome da Galeria',
-              'Data de criação: antiga para recente',
-              'Data de criação: recente para antiga',
-              'Data da sessão de fotos: antigas para recentes',
-              'Data da sessão de fotos: recentes para antigas',
-            ];
-            track filter
-          ) {
-            <button
-              type="button"
-              (click)="chooseFilter(filter)"
-              class="block w-full px-4 py-3 text-left text-sm text-slate-800 hover:bg-slate-50"
-              [class.font-semibold]="selectedFilter === filter"
-            >
-              {{ filter }}
-            </button>
-          }
-        </div>
-      }
-    </div>
   </div>
 
   <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -86,8 +58,12 @@
       <span class="sr-only">Criar nova galeria</span>
     </button>
 
-    @for (gallery of filteredGalleries; track gallery.guid) {
-      <app-galerias [galerias]="gallery"></app-galerias>
+    @for (gallery of galerias; track gallery.guid) {
+      <app-galerias [galerias]="gallery" (excluida)="removerGaleria($event)"></app-galerias>
+    }
+
+    @if (carregandoGalerias) {
+      <p class="col-span-full py-4 text-center text-sm text-neutral-500">Carregando galerias...</p>
     }
   </div>
 </section>

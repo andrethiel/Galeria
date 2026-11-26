@@ -53,7 +53,7 @@
           <app-icons name="user-pen" class="size-4" />
           Editar cliente
         </app-button>
-        <app-button [FullWidth]="false" (click)="publicarGaleria()">
+        <app-button [FullWidth]="false" [Disabled]="galeriaPublicada" (click)="publicarGaleria()">
           <app-icons name="check" class="size-4" />
           Publicar Galeria
         </app-button>

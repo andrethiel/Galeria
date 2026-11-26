@@ -12,8 +12,10 @@ namespace Galeria.Application.Interfaces
     {
         Task<GaleriaResponse> CadastroGaleria(GaleriaCreateRequest model);
         Task<GaleriaResponse> EditarGaleria(GaleriaEditRequest model);
-        Task<List<GaleriaResponse>> ListarGalerias();
-        Task<GaleriaResponse?> ObterGaleria(int id);
+        Task<PaginacaoResponse<GaleriaResponse>> ListarGalerias(int page, int pageSize);
+        Task<PaginacaoResponse<GaleriaResponse>> FiltrarGalerias(GaleriaRequest model);
+        Task<GaleriaResponse> ObterGaleria(int id);
+        Task ExcluirGaleria(int id);
         Task<GaleriaResponse> GaleriaPublicar(int idGaleria);
     }
 }

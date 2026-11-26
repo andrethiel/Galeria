@@ -118,6 +118,7 @@ namespace Galeria.Application.Services
                 throw new ServicesException("Imagem não encontrada.");
 
             var secao = await galeriaSecaoRepository.ObterGaleriaSecaoPorId(imagem.GaleriaSecaoId);
+
             if (secao is null || secao.GaleriaId != galeriaId)
                 throw new ServicesException("A imagem não pertence à galeria informada.");
 

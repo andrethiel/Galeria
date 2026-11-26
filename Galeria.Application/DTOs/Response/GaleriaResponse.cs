@@ -12,11 +12,10 @@ namespace Galeria.Application.DTOs.Response
         public int ClienteId { get; set; }
         public string Slug { get; set; }
         public StatusGaleria Status { get; set; }
-        public string SenhaHash { get; set; }
-        public string Token { get; set; }
         public DateTime? DataPublicacao { get; set; }
         public DateTime? DataExpiracao { get; set; }
         public string ImagemPrincipal { get; set; }
+        public int TotalImagens { get; set; }
         public List<GaleriaSecaoResponse> Secoes { get; set; } = new();
         public ClienteResponse Cliente { get; set; }
     }

@@ -11,6 +11,7 @@ namespace Galeria.Domain.Models
         public string Email { get; private set; }
         public string Telefone { get; private set; }
         public TipoEnsaio TipoEnsaio { get; set; }
+        public Galeria Galeria { get; set; }
 
         protected Cliente()
         {

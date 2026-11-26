@@ -131,8 +131,6 @@ namespace Galeria.Application.Services
                 ClienteId = model.ClienteId,
                 Slug = model.Slug,
                 Status = model.Status,
-                SenhaHash = model.SenhaHash,
-                Token = model.Token,
                 DataPublicacao = model.DataPublicacao,
                 DataExpiracao = model.DataExpiracao
             };

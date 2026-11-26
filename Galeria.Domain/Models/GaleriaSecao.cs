@@ -8,6 +8,7 @@ namespace Galeria.Domain.Models
     {
         public int GaleriaId { get; set; }
         public string Nome { get; set; }
+        public Galeria Galeria { get; set; }
         public List<GaleriaImagem> GaleriaImagem { get; set; }
 
         protected GaleriaSecao()

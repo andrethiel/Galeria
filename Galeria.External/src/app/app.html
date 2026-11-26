@@ -1,0 +1,53 @@
+<main class="gallery-shell">
+  <section class="hero" [style.background-image]="'url(' + featuredImage().url + ')'">
+    <div class="hero__veil"></div>
+    <div class="hero__content">
+      <span class="eyebrow">Galeria demonstrativa</span>
+      <h1>{{ galleryTitle }}</h1>
+      <p>{{ galleryDescription }}</p>
+      <button class="scroll-button" type="button" aria-label="Ver galeria" (click)="scrollToGallery()">
+        <span></span>
+      </button>
+    </div>
+  </section>
+
+  <nav class="section-nav" aria-label="Seções da galeria">
+    <button class="section-nav__item section-nav__item--active" type="button" (click)="scrollToGallery()">Todas</button>
+    @for (section of sections; track section.id) {
+      <button class="section-nav__item" type="button" (click)="scrollToSection(section.id)">{{ section.title }}</button>
+    }
+  </nav>
+
+  <section class="gallery-content" #galleryContent>
+    <header class="gallery-heading">
+      <div>
+        <span class="eyebrow">Momentos selecionados</span>
+        <h2>Uma história em imagens</h2>
+      </div>
+      <span class="photo-count">{{ totalPhotos }} fotos</span>
+    </header>
+
+    @for (section of sections; track section.id) {
+      <section class="photo-section" [id]="section.id">
+        <div class="section-heading">
+          <h3>{{ section.title }}</h3>
+          <span>{{ section.photos.length }} fotos</span>
+        </div>
+        <div class="photo-grid">
+          @for (photo of section.photos; track photo.url) {
+            <button class="photo-card" type="button" (click)="selectPhoto(photo)" [attr.aria-label]="'Abrir ' + photo.alt">
+              <img [src]="photo.url" [alt]="photo.alt" loading="lazy" />
+            </button>
+          }
+        </div>
+      </section>
+    }
+  </section>
+
+  @if (selectedPhoto(); as photo) {
+    <div class="lightbox" role="dialog" aria-modal="true" (click)="closePhoto()">
+      <button class="lightbox__close" type="button" aria-label="Fechar" (click)="closePhoto()">×</button>
+      <img [src]="photo.url" [alt]="photo.alt" (click)="$event.stopPropagation()" />
+    </div>
+  }
+</main>

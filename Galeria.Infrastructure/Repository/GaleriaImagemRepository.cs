@@ -14,7 +14,7 @@ namespace Galeria.Infrastructure.Repository
         public Task<List<GaleriaImagem>> ListarPorSecao(int galeriaSecaoId) =>
             repositoryBase.Filtrar(imagem => imagem.GaleriaSecaoId == galeriaSecaoId);
 
-        public void ExcluirGaleriaImagem(GaleriaImagem imagem) => repositoryBase.Excluir(imagem);
+        public void ExcluirGaleriaImagem(GaleriaImagem imagem) => repositoryBase.Deletar(imagem);
 
         public Task<GaleriaImagem> ObterImagemPorId(int id) => repositoryBase.ObterPorId(id);
 

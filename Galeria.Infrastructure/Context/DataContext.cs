@@ -24,6 +24,24 @@ namespace Galeria.Infrastructure.Context
             modelBuilder.Entity<Domain.Models.Galeria>()
                 .Property(x => x.Status)
                 .HasConversion<byte>();
+
+            modelBuilder.Entity<Domain.Models.Galeria>()
+                .HasOne(x => x.Cliente)
+                .WithOne(x => x.Galeria)
+                .HasForeignKey<Domain.Models.Galeria>(x => x.ClienteId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<GaleriaSecao>()
+                .HasOne(x => x.Galeria)
+                .WithMany(x => x.GaleriaSecao)
+                .HasForeignKey(x => x.GaleriaId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<GaleriaImagem>()
+                .HasOne<GaleriaSecao>()
+                .WithMany(x => x.GaleriaImagem)
+                .HasForeignKey(x => x.GaleriaSecaoId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
 
         public DbSet<Cliente> Cliente { get; set; }
