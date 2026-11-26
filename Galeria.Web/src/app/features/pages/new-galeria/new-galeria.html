@@ -1,4 +1,4 @@
-@if (selectedFiles.length === 0 && sections.length === 0) {
+@if (selectedFiles.length === 0 && sections.length === 1) {
   <section
     class="mx-auto w-[calc(100%-1.25rem)] max-w-[116rem] py-6 sm:w-[calc(100%-2rem)] sm:py-8"
   >
@@ -44,25 +44,34 @@
         </h1>
         <p class="m-0 mt-1 text-sm text-neutral-500">Organize suas fotos e seções.</p>
       </div>
-      <button
-        type="button"
-        (click)="openClientModal()"
-        class="inline-flex items-center justify-center gap-2 self-start rounded border border-secondary bg-secondary px-4 py-2.5 text-sm font-medium text-[var(--text-secondary)] transition-colors hover:bg-[var(--hover-secondary)] sm:self-center"
-      >
-        <app-icons name="user-round-pen" class="size-4" />
-        Editar cliente
-      </button>
+      <div class="flex items-center gap-3 self-start sm:self-center">
+        <app-button [FullWidth]="false" (click)="openModalConfig()" Color="secondary">
+          <app-icons name="settings-2" class="size-4" />
+          Configurações galeria
+        </app-button>
+        <app-button [FullWidth]="false" (click)="openClientModal()" Color="secondary">
+          <app-icons name="user-pen" class="size-4" />
+          Editar cliente
+        </app-button>
+        <app-button [FullWidth]="false" [Disabled]="galeriaPublicada" (click)="publicarGaleria()">
+          <app-icons name="check" class="size-4" />
+          Publicar Galeria
+        </app-button>
+      </div>
     </header>
 
     @if (sections.length < 2) {
-      <button
-        type="button"
-        (click)="createSections()"
-        class="mx-auto flex items-center gap-2 rounded bg-secondary px-4 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--hover-secondary)]"
-      >
-        <app-icons name="plus" class="size-4" />
-        Criar Seções
-      </button>
+      <div class="flex">
+        <app-button
+          [FullWidth]="false"
+          (click)="createSections()"
+          Color="secondary"
+          class="mx-auto items-center"
+        >
+          <app-icons name="plus" class="size-4" />
+          Criar Seções
+        </app-button>
+      </div>
     }
 
     @if (sections.length > 1) {
@@ -86,6 +95,16 @@
             </span>
             <span class="flex-1 text-center font-medium">{{ section.name }}</span>
             @if (sections.length > 1) {
+              <span
+                role="button"
+                tabindex="0"
+                aria-label="Editar seção"
+                (click)="$event.stopPropagation(); editSection(index)"
+                (keydown.enter)="$event.stopPropagation(); editSection(index)"
+                class="grid size-7 place-items-center rounded text-neutral-500 hover:bg-secondary hover:text-primary"
+              >
+                <app-icons name="pencil" class="size-4" />
+              </span>
               <span
                 role="button"
                 tabindex="0"
@@ -142,6 +161,11 @@
                 selectedIndexes.size === 1 ? '' : 's'
               }}
             </span>
+            @if (!isSelectedImagePrincipal()) {
+              <app-button [Disabled]="selectedIndexes.size !== 1" (click)="imagemPrincipal()">
+                Imagem principal
+              </app-button>
+            }
             <button
               type="button"
               aria-label="Excluir imagens selecionadas"
@@ -172,6 +196,27 @@
         </div>
       </div>
 
+      @if (uploadingImages) {
+        <div class="mt-6 rounded border border-neutral-200 bg-neutral-50 p-4">
+          <div class="mb-2 flex justify-between text-sm text-neutral-700">
+            <span>Enviando imagens...</span>
+            <span>{{ uploadedImages }} de {{ totalImages }}</span>
+          </div>
+
+          <div class="h-2 w-full overflow-hidden rounded-full bg-neutral-200">
+            <div
+              class="h-full rounded-full bg-primary transition-all duration-300"
+              [style.width.%]="uploadProgress"
+            ></div>
+          </div>
+
+          <div class="mt-2 flex justify-between text-xs text-neutral-500">
+            <span>Imagem atual: {{ currentImageProgress }}%</span>
+            <span>Total: {{ uploadProgress }}%</span>
+          </div>
+        </div>
+      }
+
       <div class="mt-6 flex flex-wrap gap-3">
         @for (previewUrl of previewUrls; track previewUrl; let index = $index) {
           <div
@@ -192,6 +237,15 @@
             (dragend)="onDragEnd()"
           >
             <img [src]="previewUrl" alt="Imagem selecionada" class="h-full w-full object-contain" />
+            @if (imageIds[index] === primaryImageId) {
+              <span
+                class="absolute right-2 top-2 grid size-7 place-items-center rounded-full bg-white/95 text-green-600 shadow-sm"
+                title="Imagem principal"
+                aria-label="Imagem principal"
+              >
+                <app-icons name="badge-check" class="size-5" />
+              </span>
+            }
             <button
               type="button"
               aria-label="Visualizar imagem"
@@ -248,94 +302,64 @@
       </h2>
     </header>
 
-    <nav
-      class="flex justify-center border-b border-neutral-200 px-4"
-      aria-label="Configurações da galeria"
-    >
-      @for (tab of ['Geral', 'Interações', 'Downloads']; track tab) {
-        <button
-          type="button"
-          (click)="settingsTab = $any(tab)"
-          class="relative min-w-28 px-4 py-4 text-sm font-medium text-neutral-500 hover:text-neutral-900 sm:min-w-40"
-          [class.text-neutral-900]="settingsTab === tab"
-        >
-          {{ tab }}
-          @if (tab === 'Geral') {
-            <span class="absolute -right-1 top-3 size-1.5 rounded-full"></span>
-          }
-          @if (settingsTab === tab) {
-            <span class="absolute inset-x-0 bottom-[-1px] h-0.5 bg-primary"></span>
-          }
-        </button>
-      }
-    </nav>
+    <nav class="flex justify-center border-b border-neutral-200 px-4"></nav>
 
-    @if (settingsTab === 'Geral') {
-      <div
-        class="mx-auto grid w-full max-w-3xl flex-1 grid-cols-1 gap-x-8 gap-y-8 px-6 py-10 sm:grid-cols-[7rem_1fr] sm:px-10"
-      >
-        <h3 class="m-0 text-base font-normal text-neutral-700 sm:pt-2">Básico</h3>
-        <div class="space-y-7">
-          <label class="block">
-            <span class="block text-sm text-red-500">Nome da Galeria</span>
-            <input
-              type="text"
-              [(ngModel)]="galleryName"
-              placeholder="Nome da Galeria"
-              class="w-full border-0 border-b border-red-500 px-0 py-2 text-base text-neutral-800 outline-none placeholder:text-red-500"
-            />
-            @if (!galleryName.trim()) {
-              <span class="mt-1 block text-xs text-red-500">Este campo é obrigatório.</span>
-            }
-          </label>
-
-          <label class="block">
-            <span class="sr-only">Data da sessão de fotos</span>
-            <div class="flex items-center border-b border-neutral-300">
-              <input
-                type="date"
-                [(ngModel)]="sessionDate"
-                placeholder="Data da sessão de fotos"
-                class="w-full border-0 px-0 py-2 text-base text-neutral-500 outline-none"
-              />
-              <app-icons name="calendar-days" class="size-5 text-neutral-500" />
-            </div>
-          </label>
-
-          <h3 class="m-0 pt-3 text-base font-normal text-neutral-700">Acesso</h3>
-
-          <label class="block">
-            <span class="block text-sm text-red-500">URL da Galeria</span>
-            <input
-              type="url"
-              [(ngModel)]="galleryUrl"
-              class="w-full border-0 border-b border-red-500 px-0 py-2 text-base text-neutral-500 outline-none"
-            />
-            <span class="mt-1 block text-xs text-red-500">Este campo é obrigatório.</span>
-          </label>
-
-          <label class="block">
-            <span class="sr-only">Senha</span>
-            <div class="border-b border-neutral-300">
-              <input
-                type="password"
-                [(ngModel)]="password"
-                maxlength="20"
-                placeholder="Senha"
-                class="w-full border-0 px-0 py-2 text-base text-neutral-500 outline-none"
-              />
-              <span class="block text-right text-xs text-slate-700"
-                >{{ password.length }} / 20</span
-              >
-            </div>
-          </label>
-        </div>
+    <form class="flex flex-col gap-6 p-6 sm:p-10">
+      <div class="text-center">
+        <h2 class="m-0 text-3xl font-light tracking-[-0.04em] text-primary">Cadastrar Galeria</h2>
+        <p class="mt-2 text-sm text-neutral-500">Informe os dados da galeria para criá-la.</p>
       </div>
-    } @else {
-      <div class="grid flex-1 place-items-center p-8 text-center text-sm text-neutral-600">
-        <p>As opções de {{ settingsTab.toLocaleLowerCase() }} estarão disponíveis aqui.</p>
+
+      <div class="mx-auto grid w-full max-w-xl gap-5">
+        <label class="grid gap-2 text-sm text-neutral-700">
+          <span>Nome da Galeria</span>
+          <app-input [control]="formGaleria.controls.slug" Icon="user"></app-input>
+          <div
+            *ngIf="
+              formGaleria.controls.slug.invalid &&
+              (formGaleria.controls.slug.dirty || formGaleria.controls.slug.touched)
+            "
+            class="mt-1 text-sm text-red-500"
+          >
+            <small *ngIf="formGaleria.controls.slug.errors?.['required']"
+              >Nome da Galeria é obrigatório</small
+            >
+          </div>
+        </label>
+        <label class="grid gap-2 text-sm text-neutral-700">
+          <span>Data de Publicação</span>
+          <app-datetimepicker
+            [control]="formGaleria.controls.dataPublicacao"
+            Icon="calendar-clock"
+            DateFormat="d/m/Y"
+            [Tempo]="false"
+            (dateChange)="onPublicationDateChange($event)"
+          ></app-datetimepicker>
+          <div
+            *ngIf="
+              formGaleria.controls.dataPublicacao.invalid &&
+              (formGaleria.controls.dataPublicacao.dirty ||
+                formGaleria.controls.dataPublicacao.touched)
+            "
+            class="mt-1 text-sm text-red-500"
+          >
+            <small *ngIf="formGaleria.controls.dataPublicacao.errors?.['required']"
+              >Data de Publicação é obrigatória</small
+            >
+          </div>
+        </label>
+        <label class="grid gap-2 text-sm text-neutral-700">
+          <span>Data de Expiração</span>
+          <app-datetimepicker
+            [control]="formGaleria.controls.dataExpiracao"
+            Icon="calendar-clock"
+            DateFormat="d/m/Y"
+            [Tempo]="false"
+            [MinDate]="formGaleria.controls.dataPublicacao.value"
+          ></app-datetimepicker>
+        </label>
       </div>
-    }
+    </form>
 
     <footer class="flex justify-end gap-4 border-t border-neutral-100 px-6 py-5 sm:px-10">
       <button
@@ -348,13 +372,54 @@
       <button
         type="button"
         (click)="saveSettings()"
-        [disabled]="!galleryName.trim() || !galleryUrl.trim()"
+        [disabled]="formGaleria.invalid"
         class="rounded bg-primary px-5 py-2 text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--hover-primary)] disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-400"
       >
         Salvar
       </button>
     </footer>
   </div>
+</app-modal>
+
+<app-modal [Open]="sectionModalOpen" (Closed)="closeSectionModal()">
+  <form class="flex flex-col gap-6 p-6 sm:p-10" (ngSubmit)="saveSection()" novalidate>
+    <div class="text-center">
+      <h2 class="m-0 text-3xl font-light tracking-[-0.04em] text-primary">
+        {{ sectionModalMode === 'edit' ? 'Editar seção' : 'Adicionar seção' }}
+      </h2>
+      <p class="mt-2 text-sm text-neutral-500">Informe o nome da seção da galeria.</p>
+    </div>
+
+    <label class="grid gap-2 text-sm text-neutral-700">
+      <span>Nome da seção</span>
+      <input
+        type="text"
+        name="sectionName"
+        [(ngModel)]="sectionName"
+        maxlength="100"
+        autofocus
+        required
+        class="w-full rounded border border-secondary bg-secondary/10 px-4 py-3 outline-none transition focus:border-primary focus:ring-1 focus:ring-primary"
+      />
+    </label>
+
+    <div class="flex justify-end gap-3 border-t border-secondary pt-5">
+      <button
+        type="button"
+        (click)="closeSectionModal()"
+        class="rounded px-4 py-2 text-sm font-medium text-primary hover:bg-secondary"
+      >
+        Cancelar
+      </button>
+      <button
+        type="submit"
+        [disabled]="!sectionName.trim()"
+        class="rounded bg-primary px-5 py-2 text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--hover-primary)] disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-400"
+      >
+        Salvar
+      </button>
+    </div>
+  </form>
 </app-modal>
 
 <app-modal [Open]="clientModalOpen" (Closed)="closeClientModal()">
@@ -367,33 +432,19 @@
     <div class="mx-auto grid w-full max-w-xl gap-5">
       <label class="grid gap-2 text-sm text-neutral-700">
         <span>Nome</span>
-        <input
-          type="text"
-          name="clientName"
-          [(ngModel)]="cliente.nome"
-          required
-          class="w-full rounded border border-secondary bg-secondary/10 px-4 py-3 outline-none transition focus:border-primary focus:ring-1 focus:ring-primary"
-        />
+        <app-input [control]="formCliente.controls.nome" Icon="user"></app-input>
       </label>
       <label class="grid gap-2 text-sm text-neutral-700">
         <span>E-mail</span>
-        <input
-          type="email"
-          name="clientEmail"
-          [(ngModel)]="cliente.email"
-          required
-          class="w-full rounded border border-secondary bg-secondary/10 px-4 py-3 outline-none transition focus:border-primary focus:ring-1 focus:ring-primary"
-        />
+        <app-input [control]="formCliente.controls.email" Icon="mail"></app-input>
       </label>
       <label class="grid gap-2 text-sm text-neutral-700">
         <span>Telefone</span>
-        <input
-          type="tel"
-          name="clientPhone"
-          [(ngModel)]="cliente.telefone"
-          required
-          class="w-full rounded border border-secondary bg-secondary/10 px-4 py-3 outline-none transition focus:border-primary focus:ring-1 focus:ring-primary"
-        />
+        <app-input
+          [Telefone]="true"
+          [control]="formCliente.controls.telefone"
+          Icon="phone"
+        ></app-input>
       </label>
     </div>
 
@@ -407,7 +458,8 @@
       </button>
       <button
         type="submit"
-        [disabled]="!cliente.nome?.trim() || !cliente.email?.trim() || !cliente.telefone?.trim()"
+        [disabled]="!formCliente.valid"
+        (click)="editarCliente()"
         class="rounded bg-primary px-5 py-2 text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--hover-primary)] disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-400"
       >
         Salvar

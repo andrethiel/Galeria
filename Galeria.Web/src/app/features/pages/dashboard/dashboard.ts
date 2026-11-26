@@ -1,10 +1,8 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, HostListener, inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { IconsComponent } from '../../../shared/icons/icons';
 import { Galerias } from '../../../shared/galerias/galerias';
-import { GaleriaResponse } from '../../../core/models/GaleriaResponse';
-import { ClientService } from '../../../core/services/client.service';
+import { ClienteService } from '../../../core/services/cliente.service';
 import { ModalComponent } from '../../../shared/modal/modal';
 import { FormModel } from '../../../core/models/FormModel';
 import { ClienteCreateRequest } from '../../../core/models/create/ClienteCreateRequest';
@@ -14,92 +12,155 @@ import { AlertService } from '../../../core/services/alert.service';
 import { ClienteState } from '../../../core/state/cliente.state';
 import { CommonModule } from '@angular/common';
 import { GaleriaState } from '../../../core/state/galeria.state';
+import { GaleriaSecaoState } from '../../../core/state/galeriaSecao.state';
+import { SessionStorageService } from '../../../core/services/session-storage.service';
 import { GaleriaService } from '../../../core/services/galeria.service';
-import { GaleriaCreateRequest } from '../../../core/models/create/GaleriaCreateRequest';
+import { SelectOption } from '../../../core/models/response/SelectOption';
+import { SelectComponent } from '../../../shared/select/select';
+import { GaleriaResponse } from '../../../core/models/response/GaleriaResponse';
+import { GaleriaRequest } from '../../../core/models/GaleriaRequest';
+import { DateTimePickerComponent } from '../../../shared/datetimepicket/datetimepicket';
+import { ButtonComponent } from '../../../shared/button/button';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [FormsModule, IconsComponent, Galerias, ModalComponent, InputComponent, CommonModule],
+  imports: [
+    FormsModule,
+    Galerias,
+    ModalComponent,
+    InputComponent,
+    CommonModule,
+    SelectComponent,
+    DateTimePickerComponent,
+    ButtonComponent,
+  ],
   templateUrl: './dashboard.html',
 })
 export class Dashboard implements OnInit {
-  readonly galleries: GaleriaResponse[];
+  galerias: GaleriaResponse[] = [];
+  formFiltrar!: FormGroup<FormModel<GaleriaRequest>>;
 
   constructor(
     private readonly router: Router,
-    private readonly clientService: ClientService,
+    private readonly clientService: ClienteService,
+    private readonly sessionStorage: SessionStorageService,
     private readonly galeriaService: GaleriaService,
     private fb: FormBuilder,
-  ) {
-    this.galleries = [
-      {
-        guid: '1',
-        nome: 'My Gallery',
-        image:
-          'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=900&q=80',
-      },
-      {
-        guid: '2',
-        nome: 'Sample Organized into Sections',
-        image:
-          'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=900&q=80',
-      },
-      {
-        guid: '3',
-        nome: 'Sample',
-        image:
-          'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=900&q=80',
-      },
-    ];
-  }
+  ) {}
 
   searchTerm = '';
-  searchOpen = false;
-  filterOpen = false;
-  selectedFilter = 'Nome da Galeria';
   clientModalOpen = false;
   responseHandler = inject(ResponseHandlerService);
   alert = inject(AlertService);
   clienteState = inject(ClienteState);
   galeriaState = inject(GaleriaState);
-
-  clineteForm!: FormGroup<FormModel<ClienteCreateRequest>>;
+  galeriaSecaoState = inject(GaleriaSecaoState);
+  clienteForm!: FormGroup<FormModel<ClienteCreateRequest>>;
+  tipoEnsaio: SelectOption[] = [];
+  private paginaAtual = 0;
+  private readonly tamanhoPagina = 20;
+  carregandoGalerias = false;
+  temMaisGalerias = true;
 
   ngOnInit(): void {
-    this.clineteForm = this.fb.group<FormModel<ClienteCreateRequest>>({
+    this.clienteForm = this.fb.group<FormModel<ClienteCreateRequest>>({
       nome: this.fb.control<string | null>(null, Validators.required),
       email: this.fb.control<string | null>(null, [Validators.required, Validators.email]),
       telefone: this.fb.control<string | null>(null),
+      tipoEnsaio: this.fb.control<number | null>(null, Validators.required),
+    });
+
+    this.formFiltrar = this.fb.group<FormModel<GaleriaRequest>>({
+      nomeCliente: this.fb.control<string | null>(null),
+      dataPublicacao: this.fb.control<string | null>(null),
+      tipoEnsaio: this.fb.control<number | null>(null),
+    });
+    this.carregarEnsaios();
+    this.carregarGalerias();
+  }
+
+  private carregarGalerias(pagina = 1): void {
+    if (this.carregandoGalerias || (pagina > 1 && !this.temMaisGalerias)) return;
+
+    this.carregandoGalerias = true;
+    this.galeriaService.listarGalerias(pagina, this.tamanhoPagina).subscribe({
+      next: (response) => {
+        this.responseHandler.handle(response, (galerias) => {
+          const novasGalerias = galerias.items.map((galeria) => ({
+            ...galeria,
+            nome: galeria.slug || `Galeria ${galeria.id}`,
+            image: galeria.imagemPrincipal || '',
+          }));
+
+          if (pagina === 1) {
+            this.galerias.splice(0, this.galerias.length, ...novasGalerias);
+          } else {
+            this.galerias.push(...novasGalerias);
+          }
+
+          this.paginaAtual = galerias.page;
+          this.temMaisGalerias = galerias.hasNextPage;
+        });
+      },
+      error: (error) => this.responseHandler.handleErro(error),
+      complete: () => {
+        this.carregandoGalerias = false;
+      },
     });
   }
 
-  get filteredGalleries(): GaleriaResponse[] {
-    const term = this.searchTerm.trim().toLocaleLowerCase();
+  @HostListener('window:scroll')
+  aoRolar(): void {
+    const distanciaAteOFim =
+      document.documentElement.scrollHeight - (window.innerHeight + window.scrollY);
 
-    if (!term) {
-      return this.galleries;
-    }
-
-    return this.galleries.filter((gallery) => gallery.nome.toLocaleLowerCase().includes(term));
-  }
-
-  toggleSearch(): void {
-    this.searchOpen = !this.searchOpen;
-    if (this.searchOpen) {
-      this.filterOpen = false;
+    if (distanciaAteOFim < 300) {
+      this.carregarGalerias(this.paginaAtual + 1);
     }
   }
 
-  toggleFilter(): void {
-    this.filterOpen = !this.filterOpen;
-    if (this.filterOpen) {
-      this.searchOpen = false;
+  filtrarGalerias() {
+    const filtros = this.formFiltrar.getRawValue();
+    const possuiFiltro = Object.values(filtros).some((valor) =>
+      typeof valor === 'string' ? valor.trim().length > 0 : valor !== null && valor !== undefined,
+    );
+
+    if (!possuiFiltro) {
+      this.alert.erro('Preencha pelo menos um filtro antes de pesquisar.');
+      return;
     }
+
+    this.galeriaService.filtrarGaleria(filtros).subscribe({
+      next: (response) => {
+        this.responseHandler.handle(response, (galerias) => {
+          const galeriasFiltradas = galerias.items.map((galeria) => ({
+            ...galeria,
+            nome: galeria.slug || `Galeria ${galeria.id}`,
+            image: galeria.imagemPrincipal || '',
+          }));
+
+          this.galerias.splice(0, this.galerias.length, ...galeriasFiltradas);
+        });
+      },
+      error: (error) => this.responseHandler.handleErro(error),
+    });
   }
 
-  chooseFilter(filter: string): void {
-    this.selectedFilter = filter;
-    this.filterOpen = false;
+  carregarEnsaios() {
+    this.clientService.obterTipoEnsaio().subscribe({
+      next: (response) => (this.tipoEnsaio = response.success ? response.data : []),
+      error: (error) => this.responseHandler.handleErro(error),
+    });
+  }
+
+  removerGaleria(id: number): void {
+    const index = this.galerias.findIndex((galeria) => galeria.id === id);
+    if (index !== -1) {
+      this.galerias.splice(index, 1);
+    }
+
+    this.galeriaState.excluir(id);
+    this.galeriaSecaoState.limpar();
   }
 
   openClientModal(): void {
@@ -111,27 +172,22 @@ export class Dashboard implements OnInit {
   }
 
   salvar(): void {
-    if (this.clineteForm.invalid) {
-      this.clineteForm.markAllAsTouched();
+    if (this.clienteForm.invalid) {
+      this.clienteForm.markAllAsTouched();
       this.logErrosFormulario();
       return;
     }
-    const form = this.clineteForm.getRawValue();
+    const form = this.clienteForm.getRawValue();
     this.clientModalOpen = false;
-    this.clientService.inserirCliente(form).subscribe({
+    this.clientService.inserirClienteComGaleria(form).subscribe({
       next: (response) => {
         this.responseHandler.handle(response, (dados) => {
           this.alert.sucesso('Cliente salvo com sucesso!');
-          this.clienteState.atualizar(dados);
-          this.galeriaCadastro(dados.id).subscribe({
-            next: (galeriaResponse) => {
-              this.responseHandler.handle(galeriaResponse, (galeria) => {
-                this.galeriaState.atualizar(galeria);
-                void this.router.navigate(['/new']);
-              });
-            },
-            error: (error) => this.responseHandler.handleErro(error),
-          });
+          this.clienteState.atualizar(dados.cliente);
+          this.galeriaState.atualizar(dados.galeria);
+          this.galeriaSecaoState.atualizar(dados.galeriaSecao);
+          this.sessionStorage.salvarClienteGaleria(dados);
+          void this.router.navigate(['/new']);
         });
       },
       error: (error) => {
@@ -142,21 +198,10 @@ export class Dashboard implements OnInit {
   }
 
   private logErrosFormulario() {
-    Object.entries(this.clineteForm.controls).forEach(([nome, control]) => {
+    Object.entries(this.clienteForm.controls).forEach(([nome, control]) => {
       if (control.invalid) {
         console.log(nome, control.errors);
       }
     });
-  }
-
-  private galeriaCadastro(idcliente: number) {
-    const galeria: GaleriaCreateRequest = {
-      clienteId: idcliente,
-      slug: null,
-      dataPublicacao: null,
-      dataExpiracao: null,
-    };
-
-    return this.galeriaService.cadastrarGaleria(galeria);
   }
 }

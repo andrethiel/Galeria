@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Galeria.Domain.Enums;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -6,9 +7,11 @@ namespace Galeria.Domain.Models
 {
     public class Cliente : Base
     {
-        public string Nome { get; private set; } = string.Empty;
-        public string Email { get; private set; } = string.Empty;
-        public string Telefone { get; private set; } = string.Empty;
+        public string Nome { get; private set; }
+        public string Email { get; private set; }
+        public string Telefone { get; private set; }
+        public TipoEnsaio TipoEnsaio { get; set; }
+        public Galeria Galeria { get; set; }
 
         protected Cliente()
         {
@@ -17,7 +20,7 @@ namespace Galeria.Domain.Models
         private Cliente(string nome, string email, string telefone)
         {
             Guid = Guid.NewGuid();
-            DataCriacao = DateTime.UtcNow;
+            DataCriacao = DateTime.Now;
             AtualizarDados(nome, email, telefone);
         }
 
@@ -29,7 +32,7 @@ namespace Galeria.Domain.Models
         public void Atualizar(string nome, string email, string telefone)
         {
             AtualizarDados(nome, email, telefone);
-            DataAtualizacao = DateTime.UtcNow;
+            DataAtualizacao = DateTime.Now;
         }
 
         private void AtualizarDados(string nome, string email, string telefone)

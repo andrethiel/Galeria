@@ -1,5 +1,6 @@
 ﻿using Galeria.Application.DTOs.Request;
 using Galeria.Application.DTOs.Request.Create;
+using Galeria.Application.DTOs.Request.Edit;
 using Galeria.Application.DTOs.Response;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,9 @@ namespace Galeria.Application.Interfaces
 {
     public interface IClienteServices
     {
-        public Task<ClienteResponse> InserirCliente(ClienteCreateRequest model);
+        Task<ClienteResponse> InserirCliente(ClienteCreateRequest model);
+        Task<ClienteResponse> EditarCliente(ClienteEditRequest model);
+        Task<ClienteGaleriaSessaoResponse> InserirClienteComGaleria(ClienteGaleriaCreateRequest model);
+        List<SelectItemtResponse<int>> ObterTipoEnsaios();
     }
 }

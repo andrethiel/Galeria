@@ -9,6 +9,7 @@ import { loadingInterceptor } from './core/interceptors/loading-interceptor';
 import { provideEnvironmentNgxMask } from 'ngx-mask';
 import { registerLocaleData } from '@angular/common';
 import localePt from '@angular/common/locales/pt';
+import { provideFlatpickrDefaults } from 'angularx-flatpickr';
 
 registerLocaleData(localePt);
 
@@ -18,6 +19,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideHttpClient(withInterceptors([loadingInterceptor])),
     provideEnvironmentNgxMask(),
+    provideFlatpickrDefaults(),
     provideSweetAlert2({
       fireOnInit: false,
       dismissOnDestroy: true,

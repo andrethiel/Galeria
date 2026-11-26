@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Galeria.Infrastructure.Repository
 {
@@ -43,13 +44,42 @@ namespace Galeria.Infrastructure.Repository
             return model;
         }
 
-        public async Task<List<TEntity>> Filtrar(Expression<Func<TEntity, bool>> filter = null, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> include = null) =>
-            await CriarQuery(include).Where(filter).AsNoTracking().ToListAsync();
+        public async Task<List<TEntity>> Filtrar(Expression<Func<TEntity, bool>> filter = null, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> include = null, int page = 0, int pageSize = 0)
+        {
+            var query = CriarQuery(include);
+
+            if (filter != null)
+                query = query.Where(filter);
+
+            if (page > 0 && pageSize > 0)
+            {
+                query = query
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize);
+            }
+
+            return await query
+                .AsNoTracking()
+                .ToListAsync();
+        }
 
         public async Task<TEntity?> Inserir(TEntity model)
         {
             _DbSet.Add(model);
             await _context.SaveChangesAsync();
+            return model;
+        }
+
+        public async Task<TEntity?> Deletar(TEntity model)
+        {
+            _DbSet.Remove(model);
+            await _context.SaveChangesAsync();
+            return model;
+        }
+
+        public TEntity Adicionar(TEntity model)
+        {
+            _DbSet.Add(model);
             return model;
         }
 
@@ -60,16 +90,19 @@ namespace Galeria.Infrastructure.Repository
             return models;
         }
 
-        public async Task<List<TEntity>> Listar(Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> include = null) =>
-            await CriarQuery(include).AsNoTracking().ToListAsync();
+        public async Task<List<TEntity>> Listar(Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> include = null, int page = 0, int pageSize = 0) =>
+            await CriarQuery(include).Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .AsNoTracking()
+                .ToListAsync();
 
         public async Task<List<TEntity>> ListarPorId(int id, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> include = null) => 
             await CriarQuery(include).Where(x => x.Id == id).AsNoTracking().ToListAsync();
 
         public async Task<TEntity?> ObterPorGuid(Guid Guid, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> include = null) =>
-            await CriarQuery(include).AsNoTracking().FirstOrDefaultAsync(x => x.Guid == Guid);
+            await CriarQuery(include).FirstOrDefaultAsync(x => x.Guid == Guid);
 
         public async Task<TEntity?> ObterPorId(int id, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> include = null) =>
-            await CriarQuery(include).AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
+            await CriarQuery(include).FirstOrDefaultAsync(x => x.Id == id);
     }
 }

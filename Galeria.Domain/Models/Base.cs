@@ -9,8 +9,8 @@ namespace Galeria.Domain.Models
     {
         [Key]
         public int Id { get; set; }
-        public Guid Guid { get; set; }
-        public DateTime? DataCriacao { get; set; }
+        public Guid Guid { get; set; } = Guid.NewGuid();
+        public DateTime? DataCriacao { get; set; } = DateTime.Now;
         public DateTime? DataAtualizacao { get; set; }
         public DateTime? DataExclusao { get; set; }
     }

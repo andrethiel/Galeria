@@ -14,6 +14,8 @@ namespace Galeria.Domain.Models
         public string Token { get; private set; } = string.Empty;
         public DateTime? DataPublicacao { get; private set; }
         public DateTime? DataExpiracao { get; private set; }
+        public List<GaleriaSecao> GaleriaSecao { get; set; }
+        public Cliente Cliente { get; set; }
 
         protected Galeria()
         {
@@ -29,8 +31,8 @@ namespace Galeria.Domain.Models
             DateTime? dataExpiracao)
         {
             Guid = Guid.NewGuid();
-            DataCriacao = DateTime.UtcNow;
-            AtualizarDados(clienteId, slug, status, senhaHash, token, dataPublicacao, dataExpiracao);
+            DataCriacao = DateTime.Now;
+            AtualizarDados(clienteId, slug, status, dataPublicacao, dataExpiracao);
         }
 
         public static Galeria Criar(
@@ -49,29 +51,29 @@ namespace Galeria.Domain.Models
             int clienteId,
             string slug,
             StatusGaleria status,
-            string senhaHash,
-            string token,
             DateTime? dataPublicacao,
             DateTime? dataExpiracao)
         {
-            AtualizarDados(clienteId, slug, status, senhaHash, token, dataPublicacao, dataExpiracao);
-            DataAtualizacao = DateTime.UtcNow;
+            AtualizarDados(clienteId, slug, status, dataPublicacao, dataExpiracao);
+            DataAtualizacao = DateTime.Now;
+        }
+
+        public void PublicarGaleria(int id)
+        {
+            Id = id;
+            Status = StatusGaleria.Publicada;
         }
 
         private void AtualizarDados(
             int clienteId,
             string slug,
             StatusGaleria status,
-            string senhaHash,
-            string token,
             DateTime? dataPublicacao,
             DateTime? dataExpiracao)
         {
             ClienteId = clienteId;
             Slug = slug?.Trim() ?? string.Empty;
-            Status = status;
-            SenhaHash = senhaHash?.Trim() ?? string.Empty;
-            Token = token?.Trim() ?? string.Empty;
+            Status = status;            
             DataPublicacao = dataPublicacao;
             DataExpiracao = dataExpiracao;
         }

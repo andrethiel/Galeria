@@ -1,0 +1,117 @@
+<main class="min-h-dvh bg-stone-100 font-serif text-stone-800">
+  <section
+    class="relative grid min-h-dvh place-items-center overflow-hidden bg-cover bg-center animate-hero-in"
+    [style.background-image]="featuredImage().url ? 'url(' + featuredImage().url + ')' : null"
+  >
+    <div class="absolute inset-0 bg-black/30"></div>
+    <div class="relative z-10 max-w-4xl p-8 text-center text-white animate-content-in">
+      <h1 class="my-5 text-[clamp(3.2rem,8vw,7rem)] font-normal leading-[.95]">
+        {{ galleryTitle }}
+      </h1>
+      <p class="mx-auto mb-16 max-w-xl font-sans text-base leading-relaxed opacity-90">
+        {{ galleryDescription }}
+      </p>
+      <button
+        class="h-[42px] w-[42px] cursor-pointer border-0 bg-transparent"
+        type="button"
+        aria-label="Ver galeria"
+        (click)="scrollToGallery()"
+      >
+        <span
+          class="mx-auto block h-5 w-5 rotate-45 animate-arrow-bounce border-r-2 border-b-2 border-white"
+        ></span>
+      </button>
+    </div>
+  </section>
+
+  <nav
+    class="sticky top-0 z-30 flex flex-wrap justify-center gap-8 border-b border-stone-200 bg-stone-100/95 p-5 backdrop-blur-xl max-sm:flex-nowrap max-sm:justify-start max-sm:gap-4 max-sm:overflow-x-auto"
+    aria-label="Seções da galeria"
+  >
+    <button
+      class="cursor-pointer border-0 bg-transparent font-sans text-[.7rem] font-semibold uppercase tracking-[.12em] text-stone-800"
+      type="button"
+      (click)="scrollToGallery()"
+    >
+      Todas
+    </button>
+    @if (sections.secoes.length > 1) {
+      @for (section of sections.secoes; track section.nome; let index = $index) {
+        <button
+          class="cursor-pointer whitespace-nowrap border-0 bg-transparent font-sans text-[.7rem] font-semibold uppercase tracking-[.12em] text-stone-500 hover:text-stone-800"
+          type="button"
+          (click)="scrollToSection('secao-' + index)"
+        >
+          {{ section.nome }}
+        </button>
+      }
+    }
+  </nav>
+
+  <section class="mx-auto max-w-[1250px] px-8 pt-24 pb-32 max-sm:px-4 max-sm:pt-16" #galleryContent>
+    <header class="mb-20 flex items-end justify-between gap-8 max-sm:block">
+      <div>
+        <span class="font-sans text-[.7rem] font-semibold uppercase tracking-[.22em] text-stone-500"
+          >Momentos selecionados</span
+        >
+        <h2 class="mt-3 text-[clamp(2.3rem,5vw,4.5rem)] font-normal leading-tight">
+          Uma história em imagens
+        </h2>
+      </div>
+    </header>
+
+    @for (section of sections.secoes; track section.nome; let index = $index) {
+      <section class="mb-24 scroll-mt-24" [id]="'secao-' + index">
+        <div class="mb-6 flex items-baseline justify-between border-b border-stone-300 pb-3">
+          @if (sections.secoes.length > 1) {
+            <h3 class="text-3xl font-normal">{{ section.nome }}</h3>
+          } @else {
+            <h3 class="text-3xl font-normal">Todas</h3>
+          }
+          <span class="font-sans text-xs text-stone-500">{{ section.imagens.length }} fotos</span>
+        </div>
+        <div class="grid grid-cols-4 items-start gap-[6px] max-sm:grid-cols-2 max-sm:gap-1">
+          @for (photo of section.imagens; track photo.url) {
+            <button
+              class="group block w-full cursor-pointer overflow-hidden border-0 bg-stone-300 p-0"
+              type="button"
+              (click)="selectPhoto(photo)"
+              [attr.aria-label]="'Abrir imagem da seção ' + section.nome"
+            >
+              <img
+                class="block h-auto w-full transition duration-500 group-hover:scale-105 group-hover:brightness-75"
+                [src]="photo.url"
+                [alt]="section.nome"
+                loading="lazy"
+              />
+            </button>
+          }
+        </div>
+      </section>
+    }
+  </section>
+
+  @if (selectedPhoto(); as photo) {
+    <div
+      class="fixed inset-0 z-50 grid place-items-center bg-stone-950/90 p-12 max-sm:p-6"
+      role="dialog"
+      aria-modal="true"
+      (click)="closePhoto()"
+    >
+      <button
+        class="absolute top-4 right-6 cursor-pointer border-0 bg-transparent text-4xl text-white"
+        type="button"
+        aria-label="Fechar"
+        (click)="closePhoto()"
+      >
+        ×
+      </button>
+      <img
+        class="max-h-[90vh] max-w-full object-contain"
+        [src]="photo.url"
+        alt="Imagem ampliada"
+        (click)="$event.stopPropagation()"
+      />
+    </div>
+  }
+</main>

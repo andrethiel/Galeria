@@ -1,5 +1,5 @@
 export interface GaleriaCreateRequest {
-  clienteId: number | null;
+  guid: string | null;
   slug: string | null;
   dataPublicacao: Date | null;
   dataExpiracao: Date | null;

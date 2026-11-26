@@ -1,7 +1,13 @@
+using Amazon.S3;
 using FluentValidation.AspNetCore;
 using Galeria.Api.Dependencia;
 using Galeria.Api.Extensions;
+using Galeria.Application.DTOs;
+using Galeria.Application.Interfaces;
+using Galeria.Application.Services;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Options;
 using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,6 +17,32 @@ builder.Configuration
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
     .AddEnvironmentVariables();
+
+builder.Services.Configure<CloudflareR2Settings>(
+    builder.Configuration.GetSection("CloudflareR2"));
+
+builder.Services.AddSingleton<IAmazonS3>(sp =>
+{
+    var settings = sp.GetRequiredService<
+        IOptions<CloudflareR2Settings>>().Value;
+
+    var config = new AmazonS3Config
+    {
+        ServiceURL =
+            $"https://{settings.AccountId}.r2.cloudflarestorage.com",
+
+        AuthenticationRegion = "auto",
+        ForcePathStyle = true
+    };
+
+    return new AmazonS3Client(
+        settings.AccessKeyId,
+        settings.SecretAccessKey,
+        config
+    );
+});
+
+builder.Services.AddScoped<IR2StorageService, R2StorageService>();
 
 builder.Services.AddControllers();
 builder.Services.AddProblemDetails();

@@ -10,6 +10,10 @@ namespace Galeria.Domain.Interfaces
     public interface IClienteRepository
     {
         public Task<Cliente> InserirCliente(Cliente model);
+        public Task<Cliente> EditarCliente(Cliente model);
+        public void ExcluirCliente(Cliente model);
+        public Task<Cliente> ObterClientePorId(int id);
+        public Cliente AdicionarCliente(Cliente model);
         public Task<List<Cliente>> FiltrarCliente(Expression<Func<Cliente, bool>> filter, Func<IQueryable<Cliente>, IIncludableQueryable<Cliente, object>> include = null);
     }
 }

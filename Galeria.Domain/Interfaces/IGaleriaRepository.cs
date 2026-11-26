@@ -9,7 +9,12 @@ namespace Galeria.Domain.Interfaces
 {
     public interface IGaleriaRepository
     {
-        public Task<Models.Galeria> CadastroGaleria(Models.Galeria model);
-        public Task<List<Models.Galeria>> FiltrarGalerias(Expression<Func<Models.Galeria, bool>> filter, Func<IQueryable<Models.Galeria>, IIncludableQueryable<Models.Galeria, object>> include = null);
+        Task<Models.Galeria> CadastroGaleria(Models.Galeria model);
+        Task<Models.Galeria> EditarGaleria(Models.Galeria model);
+        Task ExcluirGaleria(Models.Galeria model);
+        Models.Galeria AdicionarGaleria(Models.Galeria model);
+        Task<Domain.Models.Galeria> ObterGaleriaPorId(int id, Func<IQueryable<Domain.Models.Galeria>, IIncludableQueryable<Domain.Models.Galeria, object>> include = null);
+        Task<List<Models.Galeria>> FiltrarGalerias(Expression<Func<Models.Galeria, bool>> filter, Func<IQueryable<Models.Galeria>, IIncludableQueryable<Models.Galeria, object>> include = null, int page = 0, int pageSize = 0);
+        Task<List<Models.Galeria>> ListarGalerias(Func<IQueryable<Models.Galeria>, IIncludableQueryable<Models.Galeria, object>> include = null, int page = 0, int pageSize = 0);
     }
 }
