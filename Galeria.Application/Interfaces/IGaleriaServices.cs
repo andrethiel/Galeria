@@ -17,5 +17,6 @@ namespace Galeria.Application.Interfaces
         Task<GaleriaResponse> ObterGaleria(int id);
         Task ExcluirGaleria(int id);
         Task<GaleriaResponse> GaleriaPublicar(int idGaleria);
+        Task<GaleriaCliente> GaleriaCliente(string senha, string token);
     }
 }

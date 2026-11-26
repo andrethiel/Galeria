@@ -1,58 +1,37 @@
-import { Component, ElementRef, signal, ViewChild } from '@angular/core';
-
-interface Photo {
-  url: string;
-  alt: string;
-}
-
-interface GallerySection {
-  id: string;
-  title: string;
-  photos: Photo[];
-}
+import { Component, ElementRef, inject, signal, ViewChild } from '@angular/core';
+import { GaleriaService } from './services/galeria.service';
+import { GaleriaCliente } from './models/GaleriaCliente';
+import { GaleriaImagem } from './models/GaleriaImagem';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.html',
-  styleUrl: './app.css'
 })
 export class App {
+  private readonly galeriaService = inject(GaleriaService);
   @ViewChild('galleryContent') private galleryContent?: ElementRef<HTMLElement>;
 
   protected readonly galleryTitle = 'Um dia para lembrar';
-  protected readonly galleryDescription = 'Uma coleção de momentos especiais, organizada para contar a história completa.';
-  protected readonly sections: GallerySection[] = [
-    {
-      id: 'preparativos',
-      title: 'Preparativos',
-      photos: this.photos('preparativos', [
-        'photo-1519225421980-715cb0215aed', 'photo-1519741497674-611481863552',
-        'photo-1511285560929-80b456fea0bc', 'photo-1507504031003-b417219a0fde'
-      ])
-    },
-    {
-      id: 'cerimonia',
-      title: 'Cerimônia',
-      photos: this.photos('cerimônia', [
-        'photo-1511285560929-80b456fea0bc', 'photo-1544078751-58fee2d8a03b',
-        'photo-1606800052052-a08af7148866', 'photo-1519741497674-611481863552'
-      ])
-    },
-    {
-      id: 'celebracao',
-      title: 'Celebração',
-      photos: this.photos('celebração', [
-        'photo-1464366400600-7168b8af9bc3', 'photo-1519167758481-83f550bb49b3',
-        'photo-1531058020387-3be344556be6', 'photo-1511795409834-ef04bbd61622'
-      ])
+  protected readonly galleryDescription =
+    'Uma coleção de momentos especiais, organizada para contar a história completa.';
+  protected sections: GaleriaCliente = { imagemPrincipal: '', secoes: [] };
+  protected readonly featuredImage = signal<GaleriaImagem>({ url: '' });
+  protected readonly selectedPhoto = signal<GaleriaImagem | null>(null);
+
+  protected get totalPhotos(): number {
+    return this.sections.secoes.reduce((total, section) => total + section.imagens.length, 0);
+  }
+
+  constructor() {
+    const [senha, token] = window.location.pathname.split('/').filter(Boolean).slice(0, 2);
+
+    // A página continua apresentando o mock quando aberta na raiz.
+    if (senha && token) {
+      this.loadGallery(senha, token);
     }
-  ];
+  }
 
-  protected readonly featuredImage = signal<Photo>(this.sections[0].photos[0]);
-  protected readonly selectedPhoto = signal<Photo | null>(null);
-  protected readonly totalPhotos = this.sections.reduce((total, section) => total + section.photos.length, 0);
-
-  protected selectPhoto(photo: Photo): void {
+  protected selectPhoto(photo: GaleriaImagem): void {
     this.featuredImage.set(photo);
     this.selectedPhoto.set(photo);
   }
@@ -69,10 +48,20 @@ export class App {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   }
 
-  private photos(section: string, ids: string[]): Photo[] {
-    return ids.map((id, index) => ({
-      url: `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1200&q=85`,
-      alt: `${section}, foto ${index + 1}`
-    }));
+  private loadGallery(senha: string, token: string): void {
+    this.galeriaService.obterGaleria(senha, token).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.sections = response.data;
+          const firstPhoto = this.sections.secoes.flatMap(section => section.imagens)[0];
+          this.featuredImage.set(
+            this.sections.imagemPrincipal
+              ? { url: this.sections.imagemPrincipal }
+              : firstPhoto ?? { url: '' },
+          );
+        }
+      },
+      error: (error) => console.error('Não foi possível carregar a galeria.', error),
+    });
   }
 }

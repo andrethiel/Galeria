@@ -66,5 +66,13 @@ namespace Galeria.Api.Controllers
             var galeria = await _galeriaServices.GaleriaPublicar(idGaleria);
             return Ok(BaseResponseFactory.Success(galeria));
         }
+
+        [HttpGet]
+        [Route("GaleriaCliente/{senha}/{token}")]
+        public async Task<IActionResult> GaleriaCliente(string senha, string token)
+        {
+            var galeria = await _galeriaServices.GaleriaCliente(senha, token);
+            return Ok(BaseResponseFactory.Success(galeria));
+        }
     }
 }

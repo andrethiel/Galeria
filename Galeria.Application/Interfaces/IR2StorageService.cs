@@ -10,6 +10,5 @@ namespace Galeria.Application.Interfaces
     {
         Task<R2UploadResult> UploadAsync(IFormFile arquivo, string pasta);
         Task DeleteAsync(string nomeArquivo);
-        string GerarUrlUpload(string key, string contentType);
     }
 }

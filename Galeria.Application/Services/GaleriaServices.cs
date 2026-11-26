@@ -113,7 +113,7 @@ namespace Galeria.Application.Services
                 DataPublicacao = model.DataPublicacao,
                 DataExpiracao = model.DataExpiracao,
                 TotalImagens = model.GaleriaSecao is null ? 0 : TotalImagens(model.GaleriaSecao),
-                ImagemPrincipal = model.GaleriaSecao is null ? "" : ImagemPrincipal(model.GaleriaSecao.FirstOrDefault()),
+                ImagemPrincipal = model.GaleriaSecao is null ? "" : ImagemPrincipal(model.GaleriaSecao),
                 Secoes = model.GaleriaSecao?.Select(secao => new GaleriaSecaoResponse
                 {
                     Id = secao.Id,
@@ -130,9 +130,16 @@ namespace Galeria.Application.Services
             };
         }
 
-        private string ImagemPrincipal(GaleriaSecao galeria) 
+        private string ImagemPrincipal(List<GaleriaSecao> secoes)
         {
-            var imagemPrincipal = galeria?.GaleriaImagem?.FirstOrDefault(x => x.ImagemPrincipal == true);
+            var imagemPrincipal = secoes?
+                .SelectMany(secao => secao.GaleriaImagem ?? new List<GaleriaImagem>())
+                .FirstOrDefault(x => x.ImagemPrincipal == true);
+
+            // Se não houver uma imagem marcada, usa a primeira imagem disponível.
+            imagemPrincipal ??= secoes?
+                .SelectMany(secao => secao.GaleriaImagem ?? new List<GaleriaImagem>())
+                .FirstOrDefault();
             if (imagemPrincipal is null) {
                 return string.Empty;
             }
@@ -188,6 +195,27 @@ namespace Galeria.Application.Services
             {
                 Items = galerias.Select(galeria => MapResponse(galeria, false)).ToList()
             };
+        }
+
+        public async Task<GaleriaCliente> GaleriaCliente(string senha, string token)
+        {
+            var galerias = await _galeriaRepository.FiltrarGalerias(x => x.SenhaHash == senha && x.Token == token, y => y.Include(x => x.GaleriaSecao).ThenInclude(x => x.GaleriaImagem));
+
+            if (!galerias.Any())
+                throw new ServicesException("Galeria não encontrada");
+
+            return galerias.Select(x => new GaleriaCliente
+            {
+                ImagemPrincipal = ImagemPrincipal(x.GaleriaSecao),
+                Secoes = x.GaleriaSecao?.Select(secao => new GaleriaClienteSecaoResponse
+                {
+                    Nome = secao.Nome,
+                    Imagens = secao.GaleriaImagem?.Select(imagem => new GaleriaClienteImagemResponse
+                    {
+                        Url = ArquivoImagem.FormataURLR2(imagem.NomeArquivo, settings.Value.URLApiDev)
+                    }).ToList() ?? new List<GaleriaClienteImagemResponse>()
+                }).ToList() ?? new List<GaleriaClienteSecaoResponse>()
+            }).FirstOrDefault();
         }
     }
 }

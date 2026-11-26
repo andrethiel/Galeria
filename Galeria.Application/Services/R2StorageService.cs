@@ -39,20 +39,6 @@ namespace Galeria.Application.Services
             await _s3Client.DeleteObjectAsync(request);
         }
 
-        public string GerarUrlUpload(string key, string contentType)
-        {
-            var request = new GetPreSignedUrlRequest
-            {
-                BucketName = _settings.BucketName,
-                Key = key,
-                Verb = HttpVerb.PUT,
-                ContentType = contentType,
-                Expires = DateTime.UtcNow.AddMinutes(10)
-            };
-
-            return _s3Client.GetPreSignedURL(request);
-        }
-
         public async Task<R2UploadResult> UploadAsync(IFormFile arquivo, string pasta)
         {
             if (arquivo == null || arquivo.Length == 0)
