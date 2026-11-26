@@ -11,6 +11,6 @@ namespace Galeria.Application.DTOs
         public string SecretAccessKey { get; set; }
         public string BucketName { get; set; }
         public string URLApi { get; set; }
-        public string URLApiDev { get; set; }
+        public string URLApiDev { get; set; } = string.Empty;
     }
 }

@@ -144,7 +144,7 @@ namespace Galeria.Application.Services
                 return string.Empty;
             }
 
-            return ArquivoImagem.FormataURLR2(imagemPrincipal.NomeArquivo, settings.Value.URLApiDev);
+            return ArquivoImagem.FormataURLR2(imagemPrincipal.NomeArquivo, settings.Value.URLApi);
         }
         private int TotalImagens(List<GaleriaSecao> galerias)
         {
@@ -212,7 +212,7 @@ namespace Galeria.Application.Services
                     Nome = secao.Nome,
                     Imagens = secao.GaleriaImagem?.Select(imagem => new GaleriaClienteImagemResponse
                     {
-                        Url = ArquivoImagem.FormataURLR2(imagem.NomeArquivo, settings.Value.URLApiDev)
+                        Url = ArquivoImagem.FormataURLR2(imagem.NomeArquivo, settings.Value.URLApi)
                     }).ToList() ?? new List<GaleriaClienteImagemResponse>()
                 }).ToList() ?? new List<GaleriaClienteSecaoResponse>()
             }).FirstOrDefault();

@@ -1,3 +1,18 @@
+﻿@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@400;500;600;700&display=swap');
+
+@import 'tailwindcss';
+
+@theme {
+  --color-ivory: #eee7df;
+  --color-sand: #e8ddd1;
+  --color-nude: #c9ad9b;
+  --color-taupe: #a38b79;
+  --color-charcoal: #38312d;
+  --color-muted: #75685f;
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  --font-sans: 'DM Sans', Arial, sans-serif;
+}
+
 :root {
   --ivory: #eee7df;
   --sand: #e8ddd1;
@@ -6,8 +21,8 @@
   --charcoal: #38312d;
   --muted: #75685f;
   --white: #ffffff;
-  --serif: "Cormorant Garamond", Georgia, serif;
-  --sans: "DM Sans", Arial, sans-serif;
+  --serif: 'Cormorant Garamond', Georgia, serif;
+  --sans: 'DM Sans', Arial, sans-serif;
   --content: 1200px;
 }
 
@@ -143,6 +158,12 @@ h3 {
   line-height: 1;
   letter-spacing: 0.02em;
 }
+.brand img {
+  width: 360px;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+}
 .brand small {
   display: block;
   margin-top: 7px;
@@ -192,11 +213,11 @@ h3 {
 .hero::before {
   position: absolute;
   inset: 0;
-  content: "";
+  content: '';
   background:
     linear-gradient(90deg, rgba(28, 23, 20, 0.58), rgba(28, 23, 20, 0.08) 75%),
     linear-gradient(0deg, rgba(28, 23, 20, 0.42), transparent 55%),
-    url("https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=2200&q=88")
+    url('https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=2200&q=88')
       center 35% / cover;
   transform: scale(1.01);
 }
@@ -529,7 +550,7 @@ h3 {
   .hero::before {
     background:
       linear-gradient(0deg, rgba(28, 23, 20, 0.65), rgba(28, 23, 20, 0.08) 85%),
-      url("https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1100&q=85")
+      url('https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1100&q=85')
         55% center / cover;
   }
   .hero h1 {

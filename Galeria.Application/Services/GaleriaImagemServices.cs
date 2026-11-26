@@ -68,7 +68,7 @@ namespace Galeria.Application.Services
                     GaleriaId = model.GaleriaId,
                     NomeArquivo = imagemInserida.NomeArquivo,
                     GaleriaSecaoId = imagemInserida.GaleriaSecaoId,
-                    Url = ArquivoImagem.FormataURLR2(imagemInserida.NomeArquivo, settings.Value.URLApiDev),
+                    Url = ArquivoImagem.FormataURLR2(imagemInserida.NomeArquivo, settings.Value.URLApi),
                     ImagemPrincipal = imagemInserida.ImagemPrincipal,
                 };
             }
@@ -104,7 +104,7 @@ namespace Galeria.Application.Services
                         GaleriaId = galeriaId,
                         GaleriaSecaoId = secao.Id,
                         NomeArquivo = imagem.NomeArquivo,
-                        Url = ArquivoImagem.FormataURLR2(imagem.NomeArquivo, settings.Value.URLApiDev),
+                        Url = ArquivoImagem.FormataURLR2(imagem.NomeArquivo, settings.Value.URLApi),
                         ImagemPrincipal = imagem.ImagemPrincipal,
                     })
                     .ToList(),
@@ -171,7 +171,7 @@ namespace Galeria.Application.Services
                 NomeArquivo = imagem.NomeArquivo,
                 GaleriaId = galeriaId,
                 ImagemPrincipal = imagem.ImagemPrincipal,
-                Url = ArquivoImagem.FormataURLR2(imagem.NomeArquivo, settings.Value.URLApiDev),
+                Url = ArquivoImagem.FormataURLR2(imagem.NomeArquivo, settings.Value.URLApi),
             };
         }
     }

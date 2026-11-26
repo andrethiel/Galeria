@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://localhost:7261',
+  apiUrl: 'https://studiolizandra.runasp.net',
   //apiUrl: 'https://paroquiaplus.runasp.net',
 };

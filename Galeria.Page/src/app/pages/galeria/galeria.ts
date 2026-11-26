@@ -1,13 +1,14 @@
 import { Component, ElementRef, inject, signal, ViewChild } from '@angular/core';
-import { GaleriaService } from './services/galeria.service';
-import { GaleriaCliente } from './models/GaleriaCliente';
-import { GaleriaImagem } from './models/GaleriaImagem';
+import { GaleriaService } from '../../services/galeria.service';
+import { GaleriaCliente } from '../../models/GaleriaCliente';
+import { GaleriaImagem } from '../../models/GaleriaImagem';
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.html',
+  selector: 'app-galeria',
+  imports: [],
+  templateUrl: './galeria.html',
 })
-export class App {
+export class Galeria {
   private readonly galeriaService = inject(GaleriaService);
   @ViewChild('galleryContent') private galleryContent?: ElementRef<HTMLElement>;
 
@@ -53,11 +54,11 @@ export class App {
       next: (response) => {
         if (response.success) {
           this.sections = response.data;
-          const firstPhoto = this.sections.secoes.flatMap(section => section.imagens)[0];
+          const firstPhoto = this.sections.secoes.flatMap((section) => section.imagens)[0];
           this.featuredImage.set(
             this.sections.imagemPrincipal
               ? { url: this.sections.imagemPrincipal }
-              : firstPhoto ?? { url: '' },
+              : (firstPhoto ?? { url: '' }),
           );
         }
       },
