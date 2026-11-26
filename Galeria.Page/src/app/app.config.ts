@@ -4,7 +4,7 @@ import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
 import { loadingInterceptor } from './interceptors/loading-interceptor';
-import { icons, provideLucideIcons } from '@lucide/angular';
+import { LucideLoaderCircle, provideLucideIcons } from '@lucide/angular';
 import { registerLocaleData } from '@angular/common';
 import localePt from '@angular/common/locales/pt';
 
@@ -15,7 +15,7 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
     provideHttpClient(withInterceptors([loadingInterceptor])),
-    provideLucideIcons(...Object.values(icons)),
+    provideLucideIcons(LucideLoaderCircle),
     { provide: LOCALE_ID, useValue: 'pt-BR' },
   ],
 };
